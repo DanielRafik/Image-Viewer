@@ -97,6 +97,8 @@ class UI(QMainWindow):
             
         self.image_size=self.image_depth*self.Image_height*self.Image_width
 
+
+##############################################  LOAD NORMAL READINGS ON THE TABLES ######################################################
     def Show_Normal_Readings(self):
         Readings=[{"Property":"Height","Value":self.Image_height},{"Property":"width","Value":self.Image_width},{"Property":"Size","Value":self.image_size},{"Property":"Depth","Value":self.image_depth},{"Property":"Color","Value":self.color}]
         row=0
@@ -106,6 +108,7 @@ class UI(QMainWindow):
             self.Normal_tableWidget.setItem(row,1, QtWidgets.QTableWidgetItem(str(i["Value"])))
             row=row+1
 
+##############################################  LOAD DICOM READINGS ON THE TABLES ######################################################
     def Show_Dicom_Readings(self):
         Readings=[{"Property":"Modality","Value":self.Modality},{"Property":"Patient Name","Value":self.Patient_Name},{"Property":"Patient Age","Value":self.Patient_Age},{"Property":"Body Part","Value":self.Body_Parts}]
         row=0
