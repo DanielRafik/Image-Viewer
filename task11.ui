@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Image Viewer</string>
   </property>
   <property name="styleSheet">
    <string notr="true">/*Copyright (c) DevSec Studio. All rights reserved.
@@ -1088,6 +1088,9 @@ QSizeGrip
      </property>
      <property name="text">
       <string/>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>
