@@ -1010,123 +1010,101 @@ QSizeGrip
 </string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="Browse_Button">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>583</y>
-      <width>451</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Browse</string>
-    </property>
-   </widget>
-   <widget class="QGroupBox" name="groupBox">
-    <property name="geometry">
-     <rect>
-      <x>490</x>
-      <y>20</y>
-      <width>381</width>
-      <height>301</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Normal Image</string>
-    </property>
-    <widget class="QTableWidget" name="Normal_tableWidget">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>30</y>
-       <width>381</width>
-       <height>271</height>
-      </rect>
-     </property>
-     <column>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0" rowspan="2">
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="title">
+       <string>Image</string>
+      </property>
+      <widget class="QLabel" name="Image_label">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>30</y>
+         <width>451</width>
+         <height>531</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="scaledContents">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>Normal Image</string>
+      </property>
+      <widget class="QTableWidget" name="Normal_tableWidget">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>30</y>
+         <width>381</width>
+         <height>271</height>
+        </rect>
+       </property>
+       <column>
+        <property name="text">
+         <string>Property</string>
+        </property>
+        <property name="foreground">
+         <brush brushstyle="NoBrush">
+          <color alpha="255">
+           <red>0</red>
+           <green>0</green>
+           <blue>0</blue>
+          </color>
+         </brush>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Value</string>
+        </property>
+       </column>
+      </widget>
+     </widget>
+    </item>
+    <item row="1" column="1" rowspan="2">
+     <widget class="QGroupBox" name="groupBox_3">
+      <property name="title">
+       <string>Dicom Image</string>
+      </property>
+      <widget class="QTableWidget" name="Dicom_tableWidget">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>30</y>
+         <width>381</width>
+         <height>261</height>
+        </rect>
+       </property>
+       <column>
+        <property name="text">
+         <string>Property</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Value</string>
+        </property>
+       </column>
+      </widget>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QPushButton" name="Browse_Button">
       <property name="text">
-       <string>Property</string>
+       <string>Browse</string>
       </property>
-      <property name="foreground">
-       <brush brushstyle="NoBrush">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Value</string>
-      </property>
-     </column>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_2">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>10</y>
-      <width>451</width>
-      <height>561</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Image</string>
-    </property>
-    <widget class="QLabel" name="Image_label">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>30</y>
-       <width>451</width>
-       <height>531</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="scaledContents">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_3">
-    <property name="geometry">
-     <rect>
-      <x>490</x>
-      <y>330</y>
-      <width>381</width>
-      <height>291</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Dicom Image</string>
-    </property>
-    <widget class="QTableWidget" name="Dicom_tableWidget">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>30</y>
-       <width>381</width>
-       <height>261</height>
-      </rect>
-     </property>
-     <column>
-      <property name="text">
-       <string>Property</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Value</string>
-      </property>
-     </column>
-    </widget>
-   </widget>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
