@@ -17,12 +17,12 @@ from pydicom.data import get_testdata_files
 class UI(QMainWindow):
     def __init__(self):
         super(UI, self).__init__()
-        uic.loadUi(r"task11.ui", self)
+        uic.loadUi(r"task111.ui", self)
         self.Browse_Button.clicked.connect(self.Browse)
-        self.Normal_tableWidget.setColumnWidth(0,182)
-        self.Normal_tableWidget.setColumnWidth(1,182)
-        self.Dicom_tableWidget.setColumnWidth(0,182)
-        self.Dicom_tableWidget.setColumnWidth(1,182)
+        self.Normal_tableWidget.setColumnWidth(0,470)
+        self.Normal_tableWidget.setColumnWidth(1,470)
+        self.Dicom_tableWidget.setColumnWidth(0,470)
+        self.Dicom_tableWidget.setColumnWidth(1,470)
         self.show()
 
     def Browse(self):
