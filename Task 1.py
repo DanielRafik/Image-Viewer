@@ -1,5 +1,6 @@
 from PIL import Image
 import cv2
+from joblib import PrintTime
 import numpy as np
 import os
 import sys
@@ -17,8 +18,9 @@ from pydicom.data import get_testdata_files
 class UI(QMainWindow):
     def __init__(self):
         super(UI, self).__init__()
-        uic.loadUi(r"task111.ui", self)
+        uic.loadUi(r"Task2222.ui", self)
         self.Browse_Button.clicked.connect(self.Browse)
+        self.Apply_Button.clicked.connect(self.Apply_Zoom)
         self.Normal_tableWidget.setColumnWidth(0,470)
         self.Normal_tableWidget.setColumnWidth(1,470)
         self.Dicom_tableWidget.setColumnWidth(0,470)
@@ -77,6 +79,9 @@ class UI(QMainWindow):
         self.Body_Parts=self.ds.get('BodyPartExamined','Not Found')
 
 
+    
+        
+
 
 ############################################### READ NORMAL DATA ####################################################
     def Read_Normal(self):
@@ -117,6 +122,48 @@ class UI(QMainWindow):
             self.Dicom_tableWidget.setItem(row,0, QtWidgets.QTableWidgetItem(i["Property"]))
             self.Dicom_tableWidget.setItem(row,1, QtWidgets.QTableWidgetItem(str(i["Value"])))
             row=row+1
+
+
+#####################################################################################################################################################
+#####################################################ZOOMING TAB######################################################################################
+######################################################################################################################################################
+
+###################################################### APPLY FUCTION ######################################################################################
+    def Apply_Zoom(self):
+        try:
+            self.Gray_Normal_img=self.normal_pil_image.convert('L')
+        except:
+            QMessageBox.about(self,"Error","Image not selected")
+        else:
+            if self.ZoomingFactor_doubleSpinBox.value()>0:
+                self.zooming_factor=self.ZoomingFactor_doubleSpinBox.value()
+                self.Image_array=np.asarray(self.Gray_Normal_img)
+                self.New_width=int(self.Image_width*self.zooming_factor)
+                self.New_height=int(self.Image_height*self.zooming_factor)
+                self.Apply_Nearest_Neighbor()
+            else:
+                QMessageBox.about(self,"Error","Value not acceptable!")
+            
+
+    def Apply_Nearest_Neighbor(self):
+        Zoomed_image=np.random.randint(100,size=(self.New_height,self.New_width))
+        for i in range (0,self.New_height):
+            for j in range (0,self.New_width):
+                Zoomed_image[i,j]=self.Image_array[int(i/self.zooming_factor),int(j/self.zooming_factor)]
+        
+        Zoomed_image=Zoomed_image.astype('uint8')
+        Final_Zoomed_image=Image.fromarray(Zoomed_image,mode='L')
+        Pixmap_Final_Zoomed_image=Final_Zoomed_image.toqpixmap()
+        self.Nearest_Image_label.setPixmap(Pixmap_Final_Zoomed_image)
+        print(Zoomed_image.shape)
+        print('######################################################')
+        print(self.Image_array.shape)
+
+
+    def Apply_Bilinear_zooming(self):
+        print()
+
+######################################################### RUN THE APP ##############################################################################
 app = QApplication(sys.argv)
 UIWindow = UI()
 app.exec_()
