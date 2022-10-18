@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import pydicom
 import math
 from pydicom.data import get_testdata_files
+from sympy import maximum
 
 
 
@@ -90,11 +91,14 @@ class UI(QMainWindow):
             self.color=self.normal_pil_image.mode
             self.Image_height=self.Normal_pix_image.height()
             self.Image_width=self.Normal_pix_image.width()
-            
-            if file_name[0].endswith(".bmp"):
-                self.image_depth=int(os.path.getsize(file_name[0])*8/(self.Image_width*self.Image_height))
-            else:
-                self.image_depth=self.normal_pil_image.bits    
+
+
+            self.image_array=np.asarray(self.normal_pil_image)
+            self.channels=self.image_array.shape[2]
+            minimum=int(np.amin(self.normal_pil_image))
+            maximum=int(np.amax(self.normal_pil_image))
+            self.image_depth=int((np.ceil(np.log2(maximum-minimum+1)))*self.channels)
+               
         else:
             self.color=self.ds.PhotometricInterpretation
             self.Image_height=self.Dicom_image.height()
@@ -142,7 +146,7 @@ class UI(QMainWindow):
         else:
             if self.ZoomingFactor_doubleSpinBox.value()>0:
                 self.zooming_factor=self.ZoomingFactor_doubleSpinBox.value()
-                self.Image_array=np.asarray(self.Gray_Image)
+                self.Gray_image_array=np.asarray(self.Gray_Image)
                 self.New_width=int(self.Image_width*self.zooming_factor)
                 self.New_height=int(self.Image_height*self.zooming_factor)
                 self.Apply_Nearest_Neighbor()
@@ -162,7 +166,7 @@ class UI(QMainWindow):
         Zoomed_image=np.random.randint(100,size=(self.New_height,self.New_width))
         for i in range (0,self.New_height):
             for j in range (0,self.New_width):
-                Zoomed_image[i,j]=self.Image_array[int(i/self.zooming_factor),int(j/self.zooming_factor)]
+                Zoomed_image[i,j]=self.Gray_image_array[int(i/self.zooming_factor),int(j/self.zooming_factor)]
         
         Zoomed_image=Zoomed_image.astype('uint8')
         Final_Zoomed_image=Image.fromarray(Zoomed_image,mode='L')
@@ -170,7 +174,7 @@ class UI(QMainWindow):
         self.Nearest_Image_label.setPixmap(Pixmap_Final_Zoomed_image)
         print(Zoomed_image.shape)
         print('######################################################')
-        print(self.Image_array.shape)
+        print(self.Gray_image_array.shape)
 
 ###################################################################### BILINEAR FUNCTION ############################################################################
     def Apply_Bilinear_zooming(self):
@@ -187,21 +191,21 @@ class UI(QMainWindow):
                 y_ceil = min(self.Image_width - 1, math.ceil(y))
 
                 if (x_ceil == x_floor) and (y_ceil == y_floor):
-                    q = self.Image_array[int(x), int(y)]
+                    q = self.Gray_image_array[int(x), int(y)]
 			        
                 elif (x_ceil == x_floor):
-                    q1 = self.Image_array[int(x), int(y_floor)]
-                    q2 = self.Image_array[int(x), int(y_ceil)]
+                    q1 = self.Gray_image_array[int(x), int(y_floor)]
+                    q2 = self.Gray_image_array[int(x), int(y_ceil)]
                     q = q1 * (y_ceil - y) + q2 * (y - y_floor)
                 elif (y_ceil == y_floor):
-                    q1 = self.Image_array[int(x_floor), int(y)]
-                    q2 = self.Image_array[int(x_ceil), int(y)]
+                    q1 = self.Gray_image_array[int(x_floor), int(y)]
+                    q2 = self.Gray_image_array[int(x_ceil), int(y)]
                     q = (q1 * (x_ceil - x)) + (q2	 * (x - x_floor))
                 else:
-                    v1 = self.Image_array[x_floor, y_floor]
-                    v2 = self.Image_array[x_ceil, y_floor]
-                    v3 = self.Image_array[x_floor, y_ceil]
-                    v4 = self.Image_array[x_ceil, y_ceil]
+                    v1 = self.Gray_image_array[x_floor, y_floor]
+                    v2 = self.Gray_image_array[x_ceil, y_floor]
+                    v3 = self.Gray_image_array[x_floor, y_ceil]
+                    v4 = self.Gray_image_array[x_ceil, y_ceil]
 
                     q1 = v1 * (x_ceil - x) + v2 * (x - x_floor)
                     q2 = v3 * (x_ceil - x) + v4 * (x - x_floor)
