@@ -35,9 +35,9 @@ class UI(QMainWindow):
     def Browse(self):
         self.Dicom_tableWidget.clearContents()
         global file_name
-        file_name=QFileDialog.getOpenFileName(self, "Browse Image", "../", "*.dcm;;" " *.bmp;;" "*.jpeg;;" )
+        file_name=QFileDialog.getOpenFileName(self, "Browse Image", "../", "*.dcm;;" " *.bmp;;" "*.jpeg;;" "*.jpg;;" "*.png;;" )
 ########################################  IF JPEG OR BMP FILE ##################################################
-        if file_name[0].endswith(".bmp") | file_name[0].endswith(".jpeg"):
+        if file_name[0].endswith(".bmp") | file_name[0].endswith(".jpeg") | file_name[0].endswith(".jpg") | file_name[0].endswith(".png"):
 ######################################  HANDLING THE ERROR  ####################################################
             try:
                 self.normal_pil_image=Image.open(file_name[0])
@@ -84,13 +84,9 @@ class UI(QMainWindow):
         self.Body_Parts=self.ds.get('BodyPartExamined','Not Found')
 
 
-    
-        
-
-
 ############################################### READ NORMAL DATA ####################################################
     def Read_Normal(self):
-        if file_name[0].endswith(".bmp") | file_name[0].endswith(".jpeg"):
+        if file_name[0].endswith(".bmp") | file_name[0].endswith(".jpeg")| file_name[0].endswith(".jpg") | file_name[0].endswith(".png"):
             self.color=self.normal_pil_image.mode
             self.Image_height=self.Normal_pix_image.height()
             self.Image_width=self.Normal_pix_image.width()
@@ -105,6 +101,7 @@ class UI(QMainWindow):
             self.Image_width=self.Dicom_image.width()
             self.image_depth=self.ds.BitsAllocated
             
+            
         self.image_size=self.image_depth*self.Image_height*self.Image_width
 
 
@@ -117,6 +114,7 @@ class UI(QMainWindow):
             self.Normal_tableWidget.setItem(row,0, QtWidgets.QTableWidgetItem(i["Property"]))
             self.Normal_tableWidget.setItem(row,1, QtWidgets.QTableWidgetItem(str(i["Value"])))
             row=row+1
+
 
 ##############################################  LOAD DICOM READINGS ON THE TABLES ######################################################
     def Show_Dicom_Readings(self):
@@ -135,22 +133,31 @@ class UI(QMainWindow):
 
 ###################################################### APPLY FUCTION ######################################################################################
     def Apply_Zoom(self):
+        
         try:
-            self.Gray_Normal_img=self.normal_pil_image.convert('L')
+            
+            self.Convert_to_gray()
         except:
             QMessageBox.about(self,"Error","Image not selected")
         else:
             if self.ZoomingFactor_doubleSpinBox.value()>0:
                 self.zooming_factor=self.ZoomingFactor_doubleSpinBox.value()
-                self.Image_array=np.asarray(self.Gray_Normal_img)
+                self.Image_array=np.asarray(self.Gray_Image)
                 self.New_width=int(self.Image_width*self.zooming_factor)
                 self.New_height=int(self.Image_height*self.zooming_factor)
                 self.Apply_Nearest_Neighbor()
                 self.Apply_Bilinear_zooming()
             else:
-                QMessageBox.about(self,"Error","Value not acceptable!")
-            
-######################################################### NEAREST NEIGHBOR FUNCTION ############################################################################
+                    QMessageBox.about(self,"Error","Value not acceptable!")
+        
+        
+################################################################# CONVERT TO GRAY SCALE ################################################################
+    def Convert_to_gray(self):
+        if file_name[0].endswith(".bmp") | file_name[0].endswith(".jpeg")| file_name[0].endswith(".jpg") | file_name[0].endswith(".png"):
+            self.Gray_Image=self.normal_pil_image.convert('L')
+        elif file_name[0].endswith(".dcm"):
+            self.Gray_Image=self.final_pil_image.convert('L')
+################################################################# NEAREST NEIGHBOR FUNCTION ############################################################################
     def Apply_Nearest_Neighbor(self):
         Zoomed_image=np.random.randint(100,size=(self.New_height,self.New_width))
         for i in range (0,self.New_height):
@@ -165,16 +172,14 @@ class UI(QMainWindow):
         print('######################################################')
         print(self.Image_array.shape)
 
-
+###################################################################### BILINEAR FUNCTION ############################################################################
     def Apply_Bilinear_zooming(self):
         Zoomed_image=np.zeros((self.New_height, self.New_width))
-        w_scale_factor = (self.Image_width ) / (self.New_width)
-        h_scale_factor = (self.Image_height ) / (self.New_height)
         for i in range (0,self.New_height):
             for j in range (0,self.New_width):
                 #map the coordinates back to the original image
-                x = i * h_scale_factor
-                y = j * w_scale_factor
+                x = i / self.zooming_factor
+                y = j / self.zooming_factor
                 #calculate the coordinate values for 4 surrounding pixels.
                 x_floor = math.floor(x)
                 x_ceil = min( self.Image_height - 1, math.ceil(x))
