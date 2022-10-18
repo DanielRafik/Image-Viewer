@@ -1194,6 +1194,28 @@ QSizeGrip
            <string>GroupBox</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_8">
+           <item row="1" column="0">
+            <widget class="QDoubleSpinBox" name="ZoomingFactor_doubleSpinBox"/>
+           </item>
+           <item row="0" column="1">
+            <widget class="QGroupBox" name="groupBox_7">
+             <property name="title">
+              <string>Bilinear Interpolation</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_9">
+              <item row="0" column="0">
+               <widget class="QLabel" name="Bilinear_Image_label">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="scaledContents">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
            <item row="0" column="0">
             <widget class="QGroupBox" name="groupBox_6">
              <property name="title">
@@ -1206,38 +1228,15 @@ QSizeGrip
                  <string/>
                 </property>
                 <property name="scaledContents">
-                 <bool>false</bool>
+                 <bool>true</bool>
+                </property>
+                <property name="margin">
+                 <number>0</number>
                 </property>
                </widget>
               </item>
              </layout>
             </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QGroupBox" name="groupBox_7">
-             <property name="title">
-              <string>Bilinear Interpolation</string>
-             </property>
-             <widget class="QLabel" name="Bilinear_Image_label">
-              <property name="geometry">
-               <rect>
-                <x>10</x>
-                <y>30</y>
-                <width>411</width>
-                <height>481</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="scaledContents">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QDoubleSpinBox" name="ZoomingFactor_doubleSpinBox"/>
            </item>
            <item row="1" column="1">
             <widget class="QPushButton" name="Apply_Button">

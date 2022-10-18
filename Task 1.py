@@ -10,7 +10,7 @@ from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from PyQt5.QtGui import QPixmap
 import matplotlib.pyplot as plt
 import pydicom
-
+import math
 from pydicom.data import get_testdata_files
 
 
@@ -27,6 +27,11 @@ class UI(QMainWindow):
         self.Dicom_tableWidget.setColumnWidth(1,470)
         self.show()
 
+#####################################################################################################################################################
+##################################################### IMAGE VIEWER TAB######################################################################################
+######################################################################################################################################################
+
+########################################################## BROWSE #####################################################################################
     def Browse(self):
         self.Dicom_tableWidget.clearContents()
         global file_name
@@ -141,10 +146,11 @@ class UI(QMainWindow):
                 self.New_width=int(self.Image_width*self.zooming_factor)
                 self.New_height=int(self.Image_height*self.zooming_factor)
                 self.Apply_Nearest_Neighbor()
+                self.Apply_Bilinear_zooming()
             else:
                 QMessageBox.about(self,"Error","Value not acceptable!")
             
-
+######################################################### NEAREST NEIGHBOR FUNCTION ############################################################################
     def Apply_Nearest_Neighbor(self):
         Zoomed_image=np.random.randint(100,size=(self.New_height,self.New_width))
         for i in range (0,self.New_height):
@@ -161,7 +167,45 @@ class UI(QMainWindow):
 
 
     def Apply_Bilinear_zooming(self):
-        print()
+        Zoomed_image=np.zeros((self.New_height, self.New_width))
+        w_scale_factor = (self.Image_width ) / (self.New_width)
+        h_scale_factor = (self.Image_height ) / (self.New_height)
+        for i in range (0,self.New_height):
+            for j in range (0,self.New_width):
+                #map the coordinates back to the original image
+                x = i * h_scale_factor
+                y = j * w_scale_factor
+                #calculate the coordinate values for 4 surrounding pixels.
+                x_floor = math.floor(x)
+                x_ceil = min( self.Image_height - 1, math.ceil(x))
+                y_floor = math.floor(y)
+                y_ceil = min(self.Image_width - 1, math.ceil(y))
+
+                if (x_ceil == x_floor) and (y_ceil == y_floor):
+                    q = self.Image_array[int(x), int(y)]
+			        
+                elif (x_ceil == x_floor):
+                    q1 = self.Image_array[int(x), int(y_floor)]
+                    q2 = self.Image_array[int(x), int(y_ceil)]
+                    q = q1 * (y_ceil - y) + q2 * (y - y_floor)
+                elif (y_ceil == y_floor):
+                    q1 = self.Image_array[int(x_floor), int(y)]
+                    q2 = self.Image_array[int(x_ceil), int(y)]
+                    q = (q1 * (x_ceil - x)) + (q2	 * (x - x_floor))
+                else:
+                    v1 = self.Image_array[x_floor, y_floor]
+                    v2 = self.Image_array[x_ceil, y_floor]
+                    v3 = self.Image_array[x_floor, y_ceil]
+                    v4 = self.Image_array[x_ceil, y_ceil]
+
+                    q1 = v1 * (x_ceil - x) + v2 * (x - x_floor)
+                    q2 = v3 * (x_ceil - x) + v4 * (x - x_floor)
+                    q = q1 * (y_ceil - y) + q2 * (y - y_floor)
+                Zoomed_image[i,j]=q
+        Zoomed_image=Zoomed_image.astype('uint8')
+        Final_Zoomed_image=Image.fromarray(Zoomed_image,mode='L')
+        Pixmap_Final_Zoomed_image=Final_Zoomed_image.toqpixmap()
+        self.Bilinear_Image_label.setPixmap(Pixmap_Final_Zoomed_image)
 
 ######################################################### RUN THE APP ##############################################################################
 app = QApplication(sys.argv)
