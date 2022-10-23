@@ -26,6 +26,8 @@ class UI(QMainWindow):
         self.Normal_tableWidget.setColumnWidth(1,470)
         self.Dicom_tableWidget.setColumnWidth(0,470)
         self.Dicom_tableWidget.setColumnWidth(1,470)
+        self.New_Dimensions_tableWidget.setColumnWidth(0,1000)
+        self.New_Dimensions_tableWidget.setColumnWidth(1,1000)
         self.show()
 
 #####################################################################################################################################################
@@ -149,6 +151,7 @@ class UI(QMainWindow):
                 self.New_height=int(self.Image_height*self.zooming_factor)
                 self.Apply_Nearest_Neighbor()
                 self.Apply_Bilinear_zooming()
+                self.Show_new_dimensions()
             else:
                     QMessageBox.about(self,"Error","Value not acceptable!")
         
@@ -173,6 +176,18 @@ class UI(QMainWindow):
         print(Zoomed_image.shape)
         print('######################################################')
         print(self.Gray_image_array.shape)
+
+
+##################################################################### Show new dimensions ###############################################################  
+    
+    def Show_new_dimensions(self):
+        Readings=[{"Property":"Height","Value":self.New_height},{"Property":"width","Value":self.New_width}]
+        self.New_Dimensions_tableWidget.setRowCount(len(Readings))
+        row=0
+        for i in Readings:
+            self.New_Dimensions_tableWidget.setItem(row,0, QtWidgets.QTableWidgetItem(i["Property"]))
+            self.New_Dimensions_tableWidget.setItem(row,1, QtWidgets.QTableWidgetItem(str(i["Value"])))
+            row=row+1
 
 ###################################################################### BILINEAR FUNCTION ############################################################################
     def Apply_Bilinear_zooming(self):
@@ -200,13 +215,13 @@ class UI(QMainWindow):
                     q2 = self.Gray_image_array[int(x_ceil), int(y)]
                     q = (q1 * (x_ceil - x)) + (q2	 * (x - x_floor))
                 else:
-                    v1 = self.Gray_image_array[x_floor, y_floor]
-                    v2 = self.Gray_image_array[x_ceil, y_floor]
-                    v3 = self.Gray_image_array[x_floor, y_ceil]
-                    v4 = self.Gray_image_array[x_ceil, y_ceil]
+                    value_of_1st_pixel = self.Gray_image_array[x_floor, y_floor]
+                    value_of_2nd_pixel = self.Gray_image_array[x_ceil, y_floor]
+                    value_of_3rd_pixel = self.Gray_image_array[x_floor, y_ceil]
+                    value_of_4th_pixel = self.Gray_image_array[x_ceil, y_ceil]
 
-                    q1 = v1 * (x_ceil - x) + v2 * (x - x_floor)
-                    q2 = v3 * (x_ceil - x) + v4 * (x - x_floor)
+                    q1 = value_of_1st_pixel * (x_ceil - x) + value_of_2nd_pixel * (x - x_floor)
+                    q2 = value_of_3rd_pixel * (x_ceil - x) + value_of_4th_pixel * (x - x_floor)
                     q = q1 * (y_ceil - y) + q2 * (y - y_floor)
                 Zoomed_image[i,j]=q
         Zoomed_image=Zoomed_image.astype('uint8')

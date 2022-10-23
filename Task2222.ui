@@ -1083,7 +1083,7 @@ QSizeGrip
 </string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout_6">
+   <layout class="QGridLayout" name="gridLayout_10">
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
@@ -1216,6 +1216,13 @@ QSizeGrip
              </layout>
             </widget>
            </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="Apply_Button">
+             <property name="text">
+              <string>Apply</string>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="0">
             <widget class="QGroupBox" name="groupBox_6">
              <property name="title">
@@ -1238,14 +1245,34 @@ QSizeGrip
              </layout>
             </widget>
            </item>
-           <item row="1" column="1">
-            <widget class="QPushButton" name="Apply_Button">
-             <property name="text">
-              <string>Apply</string>
-             </property>
-            </widget>
-           </item>
           </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_3">
+       <attribute name="title">
+        <string>New Dimensions</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_6">
+        <item row="0" column="0">
+         <widget class="QTableWidget" name="New_Dimensions_tableWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <column>
+           <property name="text">
+            <string>Property</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Value</string>
+           </property>
+          </column>
          </widget>
         </item>
        </layout>
