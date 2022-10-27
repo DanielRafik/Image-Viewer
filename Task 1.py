@@ -199,27 +199,33 @@ class UI(QMainWindow):
                 y = j / self.zooming_factor
                 #calculate the coordinate values for 4 surrounding pixels.
                 x_floor = math.floor(x)
+                # min to avoid index error
                 x_ceil = min( self.Image_height - 1, math.ceil(x))
                 y_floor = math.floor(y)
                 y_ceil = min(self.Image_width - 1, math.ceil(y))
 
+                # if x is integer so it doesn't need interpolation
                 if (x_ceil == x_floor) and (y_ceil == y_floor):
                     q = self.Gray_image_array[int(x), int(y)]
-			        
+
+                # if it is a point between 2 points on the y-axis  
                 elif (x_ceil == x_floor):
                     q1 = self.Gray_image_array[int(x), int(y_floor)]
                     q2 = self.Gray_image_array[int(x), int(y_ceil)]
                     q = q1 * (y_ceil - y) + q2 * (y - y_floor)
+
+                # if it is a point between 2 points on the x-axis  
                 elif (y_ceil == y_floor):
                     q1 = self.Gray_image_array[int(x_floor), int(y)]
                     q2 = self.Gray_image_array[int(x_ceil), int(y)]
                     q = (q1 * (x_ceil - x)) + (q2	 * (x - x_floor))
                 else:
+                # get the 4 surrounding pixels
                     value_of_1st_pixel = self.Gray_image_array[x_floor, y_floor]
                     value_of_2nd_pixel = self.Gray_image_array[x_ceil, y_floor]
                     value_of_3rd_pixel = self.Gray_image_array[x_floor, y_ceil]
                     value_of_4th_pixel = self.Gray_image_array[x_ceil, y_ceil]
-
+                # Bilinear interpolation calculations
                     q1 = value_of_1st_pixel * (x_ceil - x) + value_of_2nd_pixel * (x - x_floor)
                     q2 = value_of_3rd_pixel * (x_ceil - x) + value_of_4th_pixel * (x - x_floor)
                     q = q1 * (y_ceil - y) + q2 * (y - y_floor)
