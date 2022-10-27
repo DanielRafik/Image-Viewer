@@ -173,9 +173,9 @@ class UI(QMainWindow):
         Final_Zoomed_image=Image.fromarray(Zoomed_image,mode='L')
         Pixmap_Final_Zoomed_image=Final_Zoomed_image.toqpixmap()
         self.Nearest_Image_label.setPixmap(Pixmap_Final_Zoomed_image)
-        print(Zoomed_image.shape)
-        print('######################################################')
-        print(self.Gray_image_array.shape)
+        # print(Zoomed_image.shape)
+        # print('######################################################')
+        # print(self.Gray_image_array.shape)
 
 
 ##################################################################### Show new dimensions ###############################################################  
