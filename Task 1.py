@@ -22,12 +22,14 @@ class UI(QMainWindow):
         uic.loadUi(r"Task2222.ui", self)
         self.Browse_Button.clicked.connect(self.Browse)
         self.Apply_Button.clicked.connect(self.Apply_Zoom)
+        self.Rotate_Button.clicked.connect(self.Apply_rotation)
         self.Normal_tableWidget.setColumnWidth(0,470)
         self.Normal_tableWidget.setColumnWidth(1,470)
         self.Dicom_tableWidget.setColumnWidth(0,470)
         self.Dicom_tableWidget.setColumnWidth(1,470)
         self.New_Dimensions_tableWidget.setColumnWidth(0,1000)
         self.New_Dimensions_tableWidget.setColumnWidth(1,1000)
+        self.Draw_T_image()
         self.show()
 
 #####################################################################################################################################################
@@ -149,7 +151,7 @@ class UI(QMainWindow):
                 self.Gray_image_array=np.asarray(self.Gray_Image)
                 self.New_width=int(self.Image_width*self.zooming_factor)
                 self.New_height=int(self.Image_height*self.zooming_factor)
-                self.Apply_Nearest_Neighbor()
+                self.Apply_Nearest_Neighbor_zooming()
                 self.Apply_Bilinear_zooming()
                 self.Show_new_dimensions()
             else:
@@ -163,20 +165,16 @@ class UI(QMainWindow):
         elif file_name[0].endswith(".dcm"):
             self.Gray_Image=self.final_pil_image.convert('L')
 ################################################################# NEAREST NEIGHBOR FUNCTION ############################################################################
-    def Apply_Nearest_Neighbor(self):
+    def Apply_Nearest_Neighbor_zooming(self):
         Zoomed_image=np.random.randint(100,size=(self.New_height,self.New_width))
         for i in range (0,self.New_height):
             for j in range (0,self.New_width):
-                Zoomed_image[i,j]=self.Gray_image_array[int(i/self.zooming_factor),int(j/self.zooming_factor)]
+                Zoomed_image[i,j]=self.Gray_image_array[round(i/self.zooming_factor),round(j/self.zooming_factor)]
         
         Zoomed_image=Zoomed_image.astype('uint8')
         Final_Zoomed_image=Image.fromarray(Zoomed_image,mode='L')
         Pixmap_Final_Zoomed_image=Final_Zoomed_image.toqpixmap()
         self.Nearest_Image_label.setPixmap(Pixmap_Final_Zoomed_image)
-        # print(Zoomed_image.shape)
-        # print('######################################################')
-        # print(self.Gray_image_array.shape)
-
 
 ##################################################################### Show new dimensions ###############################################################  
     
@@ -235,6 +233,61 @@ class UI(QMainWindow):
         Pixmap_Final_Zoomed_image=Final_Zoomed_image.toqpixmap()
         self.Bilinear_Image_label.setPixmap(Pixmap_Final_Zoomed_image)
 
+
+######################################################### Draw T image ##############################################################################
+    def Draw_T_image(self):
+        self.T_image_height=128
+        self.T_image_width=128
+        self.T_image_array=np.zeros((self.T_image_height,self.T_image_width))
+        self.T_image_array[29:49,29:99]=255
+        self.T_image_array[49:99,54:74]=255
+        self.T_image=self.T_image_array.astype('uint8')
+        self.T_image=Image.fromarray(self.T_image,mode='L')
+        self.T_image=self.T_image.toqpixmap()
+        self.Nearest_Neighbor_rotation_label.setPixmap(self.T_image)
+        self.Bilinear_rotation_label.setPixmap(self.T_image)
+        
+
+    
+#####################################################################################################################################################
+##################################################### ROTATION TAB######################################################################################
+######################################################################################################################################################
+    def Apply_rotation(self):
+        Rotated_image_array=np.zeros((self.T_image_height,self.T_image_width))
+        degree=int(self.lineEdit.text())
+        rads = math.radians(degree)
+# We consider the rotated image to be of the same size as the original
+        rot_img = np.uint8(np.zeros(self.T_image_array.shape))
+    # Finding the center point of rotated (or original) image.
+        height = rot_img.shape[0]
+        width  = rot_img.shape[1]
+
+        midx,midy = (width//2, height//2)
+
+        for i in range(rot_img.shape[0]):
+            for j in range(rot_img.shape[1]):
+                x= (i-midx)*math.cos(rads)+(j-midy)*math.sin(rads)
+                y= -(i-midx)*math.sin(rads)+(j-midy)*math.cos(rads)
+
+                x=x+midx 
+                y=y+midy 
+
+                if (round(x)>=0 and round(y)>=0 and round(x)<self.T_image_array.shape[0]-1 and  round(y)<self.T_image_array.shape[1]-1):
+                    
+                    Rotated_image_array[i,j]=self.T_image_array[round(x),round(y)]
+                    
+                    Rotated_image=Rotated_image_array.astype('uint8')
+                    Rotated_image=Image.fromarray(Rotated_image,mode='L')
+                    Rotated_image=Rotated_image.toqpixmap()
+                    self.Nearest_Neighbor_rotation_label.setPixmap(Rotated_image)
+                    
+
+       
+
+    
+
+
+    
 ######################################################### RUN THE APP ##############################################################################
 app = QApplication(sys.argv)
 UIWindow = UI()
