@@ -28,12 +28,14 @@ class UI(QMainWindow):
         self.Browse_Button.clicked.connect(self.Browse)
         self.Apply_Button.clicked.connect(self.Apply_Zoom)
         self.Rotate_Button.clicked.connect(self.Apply_rotation)
+        self.Shear_Button.clicked.connect(self.Apply_Shearing)
         self.Normal_tableWidget.setColumnWidth(0,470)
         self.Normal_tableWidget.setColumnWidth(1,470)
         self.Dicom_tableWidget.setColumnWidth(0,470)
         self.Dicom_tableWidget.setColumnWidth(1,470)
         self.New_Dimensions_tableWidget.setColumnWidth(0,1000)
         self.New_Dimensions_tableWidget.setColumnWidth(1,1000)
+        
         self.Draw_T_image()
         self.show()
 
@@ -261,7 +263,7 @@ class UI(QMainWindow):
 
     
 #####################################################################################################################################################
-##################################################### ROTATION TAB######################################################################################
+##################################################### ROTATION TAB  `######################################################################################
 ######################################################################################################################################################
     def Apply_rotation(self):
         self.Apply_Nearest_Neighbor_rotation()
@@ -311,6 +313,8 @@ class UI(QMainWindow):
                 
 
 
+
+######################################################## Bilinear Rotation ################################################################
     def Apply_Binlinear_rotation(self):
         Rotated_image_array=np.zeros((self.T_image_height,self.T_image_width))
         degree=int(self.lineEdit.text())
@@ -365,16 +369,57 @@ class UI(QMainWindow):
                         q = q1 * (y_ceil - y) + q2 * (y - y_floor)
                     Rotated_image_array[i,j]=q
 
-                else:
-                    Rotated_image_array[i,j]=255
-        Rotated_image=Rotated_image_array.astype('uint8')
-        Rotated_image=Image.fromarray(Rotated_image,mode='L')
-        Rotated_image=Rotated_image.toqpixmap()
+                
+        
+        
+        
         self.Bilinear_Rotation_graphicsView.canvas.axes.clear()
         self.Bilinear_Rotation_graphicsView.canvas.axes.imshow(Rotated_image_array)
         self.Bilinear_Rotation_graphicsView.canvas.draw()
             
 
+
+
+
+############################################################################################################################################################
+###########################################################  SHEARING ######################################################################################
+############################################################################################################################################################
+    def Apply_Shearing(self):
+        self.Apply_Nearest_Neighbor_Shearing()
+
+
+    def Apply_Nearest_Neighbor_Shearing(self):
+        Rotated_image_array=np.zeros((self.T_image_height,self.T_image_width))
+        rads = math.radians(45/2)
+    # We consider the rotated image to be of the same size as the original
+        rot_img = np.uint8(np.zeros(self.T_image_array.shape))
+    # Finding the center point of rotated (or original) image.
+        height = rot_img.shape[0]
+        width  = rot_img.shape[1]
+        for i in range(rot_img.shape[0]):
+            for j in range(rot_img.shape[1]):
+
+                x= i
+                y= i*math.tan(rads)+j
+
+                if (round(x)>=0 and round(y)>=0 and round(x)<self.T_image_array.shape[0]-1 and  round(y)<self.T_image_array.shape[1]-1):
+                    
+                    Rotated_image_array[i,j]=self.T_image_array[round(x),round(y)]
+                    
+                    
+                else:
+                    Rotated_image_array[i,j]=255
+
+            
+        self.Nearest_Neighbor_Rotation_graphicsView.canvas.axes.clear()
+        self.Nearest_Neighbor_Rotation_graphicsView.canvas.axes.imshow(Rotated_image_array)
+        self.Nearest_Neighbor_Rotation_graphicsView.canvas.draw()
+                
+
+
+
+######################################################## Bilinear Rotation ################################################################
+    
 
     
 ######################################################### RUN THE APP ##############################################################################
