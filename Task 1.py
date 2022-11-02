@@ -28,7 +28,7 @@ class UI(QMainWindow):
         self.Browse_Button.clicked.connect(self.Browse)
         self.Apply_Button.clicked.connect(self.Apply_Zoom)
         self.Rotate_Button.clicked.connect(self.Apply_rotation)
-        self.Shear_Button.clicked.connect(self.Apply_Shearing)
+        self.Shear_Button.clicked.connect(self.Apply_Nearest_Neighbor_Shearing)
         self.Normal_tableWidget.setColumnWidth(0,470)
         self.Normal_tableWidget.setColumnWidth(1,470)
         self.Dicom_tableWidget.setColumnWidth(0,470)
@@ -253,11 +253,14 @@ class UI(QMainWindow):
         self.T_image=self.T_image.toqpixmap()
         
         self.Nearest_Neighbor_Rotation_graphicsView.canvas.axes.clear()
-        self.Nearest_Neighbor_Rotation_graphicsView.canvas.axes.imshow(self.T_image_array)
+        self.Nearest_Neighbor_Rotation_graphicsView.canvas.axes.imshow(self.T_image_array,cmap=("gray"))
         self.Nearest_Neighbor_Rotation_graphicsView.canvas.draw()
         self.Bilinear_Rotation_graphicsView.canvas.axes.clear()
-        self.Bilinear_Rotation_graphicsView.canvas.axes.imshow(self.T_image_array)
+        self.Bilinear_Rotation_graphicsView.canvas.axes.imshow(self.T_image_array,cmap=("gray"))
         self.Bilinear_Rotation_graphicsView.canvas.draw()
+        self.Shearing_graphicsView.canvas.axes.clear()
+        self.Shearing_graphicsView.canvas.axes.imshow(self.T_image_array,cmap=("gray"))
+        self.Shearing_graphicsView.canvas.draw()
         
         
 
@@ -266,49 +269,50 @@ class UI(QMainWindow):
 ##################################################### ROTATION TAB  `######################################################################################
 ######################################################################################################################################################
     def Apply_rotation(self):
+        try:
+            self.degree=int(self.lineEdit.text())
+        except:
+            QMessageBox.about(self,"Error","Please enter a value!")
+        else:
+            self.rads = math.radians(self.degree)
+    # We consider the rotated image to be of the same size as the original
+            self.rot_img = np.uint8(np.zeros(self.T_image_array.shape))
+    # Finding the center point of rotated (or original) image.
+            self.Height = self.rot_img.shape[0]
+            self.Width  = self.rot_img.shape[1]
+        
         self.Apply_Nearest_Neighbor_rotation()
         self.Apply_Binlinear_rotation()
 
 
 ################################################ Nearest Neighbor Rotation ######################################################           
     def Apply_Nearest_Neighbor_rotation(self):
+
         Rotated_image_array=np.zeros((self.T_image_height,self.T_image_width))
-        degree=int(self.lineEdit.text())
-        rads = math.radians(degree)
-    # We consider the rotated image to be of the same size as the original
-        rot_img = np.uint8(np.zeros(self.T_image_array.shape))
-    # Finding the center point of rotated (or original) image.
-        height = rot_img.shape[0]
-        width  = rot_img.shape[1]
 
-        midx,midy = (width//2, height//2)
+        midx,midy = (self.Width//2, self.Height//2)
 
-        for i in range(rot_img.shape[0]):
-            for j in range(rot_img.shape[1]):
+        for i in range(self.rot_img.shape[0]):
+            for j in range(self.rot_img.shape[1]):
 
-                x= (i-midx)*math.cos(rads)+(j-midy)*math.sin(rads)
-                y= -(i-midx)*math.sin(rads)+(j-midy)*math.cos(rads)
+                x= (i-midx)*math.cos(self.rads)+(j-midy)*math.sin(self.rads)
+                y= -(i-midx)*math.sin(self.rads)+(j-midy)*math.cos(self.rads)
 
 
                 if x>self.T_image_height-1 or y>self.T_image_width-1:
                     x=int(x)+midx 
                     y=int(y)+midy 
-                
+                    
                 else:
                     x=round(x)+midx 
                     y=round(y)+midy 
 
                 if (x>=0 and y>=0 and x<self.T_image_array.shape[0]-1 and  y<self.T_image_array.shape[1]-1):
-                    
+                        
                     Rotated_image_array[i,j]=self.T_image_array[x,y]
-                    
-                    
-                else:
-                    Rotated_image_array[i,j]=255
-
-            
+                        
         self.Nearest_Neighbor_Rotation_graphicsView.canvas.axes.clear()
-        self.Nearest_Neighbor_Rotation_graphicsView.canvas.axes.imshow(Rotated_image_array)
+        self.Nearest_Neighbor_Rotation_graphicsView.canvas.axes.imshow(Rotated_image_array,cmap=("gray"))
         self.Nearest_Neighbor_Rotation_graphicsView.canvas.draw()
                 
 
@@ -317,11 +321,10 @@ class UI(QMainWindow):
 ######################################################## Bilinear Rotation ################################################################
     def Apply_Binlinear_rotation(self):
         Rotated_image_array=np.zeros((self.T_image_height,self.T_image_width))
-        degree=int(self.lineEdit.text())
-        rads = math.radians(degree)
+        
     # We consider the rotated image to be of the same size as the original
         rot_img = np.uint8(np.zeros(self.T_image_array.shape))
-    # Finding the center point of rotated (or original) image.
+        # Finding the center point of rotated (or original) image.
         height = rot_img.shape[0]
         width  = rot_img.shape[1]
 
@@ -329,52 +332,48 @@ class UI(QMainWindow):
 
         for i in range(rot_img.shape[0]):
             for j in range(rot_img.shape[1]):
-                x= (i-midx)*math.cos(rads)+(j-midy)*math.sin(rads)
-                y= -(i-midx)*math.sin(rads)+(j-midy)*math.cos(rads)
+                x= (i-midx)*math.cos(self.rads)+(j-midy)*math.sin(self.rads)
+                y= -(i-midx)*math.sin(self.rads)+(j-midy)*math.cos(self.rads)
 
                 x=x+midx 
                 y=y+midy 
 
                 if (round(x)>=0 and round(y)>=0 and round(x)<self.T_image_array.shape[0]-1 and  round(y)<self.T_image_array.shape[1]-1):
                     x_floor = math.floor(x)
-                # min to avoid index error
+                    # min to avoid index error
                     x_ceil = min( self.T_image_height - 1, math.ceil(x))
                     y_floor = math.floor(y)
                     y_ceil = min(self.T_image_width - 1, math.ceil(y))
 
-                # if x is integer so it doesn't need interpolation
+                    # if x is integer so it doesn't need interpolation
                     if (x_ceil == x_floor) and (y_ceil == y_floor):
                         q = self.T_image_array[int(x), int(y)]
 
-                    # if it is a point between 2 points on the y-axis  
+                        # if it is a point between 2 points on the y-axis  
                     elif (x_ceil == x_floor):
                         q1 = self.T_image_array[int(x), int(y_floor)]
                         q2 = self.T_image_array[int(x), int(y_ceil)]
                         q = q1 * (y_ceil - y) + q2 * (y - y_floor)
 
-                    # if it is a point between 2 points on the x-axis  
+                        # if it is a point between 2 points on the x-axis  
                     elif (y_ceil == y_floor):
                         q1 = self.T_image_array[int(x_floor), int(y)]
                         q2 = self.T_image_array[int(x_ceil), int(y)]
                         q = (q1 * (x_ceil - x)) + (q2	 * (x - x_floor))
                     else:
-                    # get the 4 surrounding pixels
+                        # get the 4 surrounding pixels
                         value_of_1st_pixel = self.T_image_array[x_floor, y_floor]
                         value_of_2nd_pixel = self.T_image_array[x_ceil, y_floor]
                         value_of_3rd_pixel = self.T_image_array[x_floor, y_ceil]
                         value_of_4th_pixel = self.T_image_array[x_ceil, y_ceil]
-                    # Bilinear interpolation calculations
+                        # Bilinear interpolation calculations
                         q1 = value_of_1st_pixel * (x_ceil - x) + value_of_2nd_pixel * (x - x_floor)
                         q2 = value_of_3rd_pixel * (x_ceil - x) + value_of_4th_pixel * (x - x_floor)
                         q = q1 * (y_ceil - y) + q2 * (y - y_floor)
                     Rotated_image_array[i,j]=q
-
-                
-        
-        
-        
+            
         self.Bilinear_Rotation_graphicsView.canvas.axes.clear()
-        self.Bilinear_Rotation_graphicsView.canvas.axes.imshow(Rotated_image_array)
+        self.Bilinear_Rotation_graphicsView.canvas.axes.imshow(Rotated_image_array,cmap=("gray"))
         self.Bilinear_Rotation_graphicsView.canvas.draw()
             
 
@@ -384,41 +383,32 @@ class UI(QMainWindow):
 ############################################################################################################################################################
 ###########################################################  SHEARING ######################################################################################
 ############################################################################################################################################################
-    def Apply_Shearing(self):
-        self.Apply_Nearest_Neighbor_Shearing()
+    
 
 
     def Apply_Nearest_Neighbor_Shearing(self):
-        Rotated_image_array=np.zeros((self.T_image_height,self.T_image_width))
-        rads = math.radians(45/2)
+        Sheared_image_array=np.zeros((self.T_image_height,self.T_image_width*2))
+        rads = math.radians(-45)
     # We consider the rotated image to be of the same size as the original
-        rot_img = np.uint8(np.zeros(self.T_image_array.shape))
-    # Finding the center point of rotated (or original) image.
-        height = rot_img.shape[0]
-        width  = rot_img.shape[1]
-        for i in range(rot_img.shape[0]):
-            for j in range(rot_img.shape[1]):
+        
+        for i in range(Sheared_image_array.shape[0]):
+            for j in range(Sheared_image_array.shape[1]):
 
                 x= i
                 y= i*math.tan(rads)+j
 
                 if (round(x)>=0 and round(y)>=0 and round(x)<self.T_image_array.shape[0]-1 and  round(y)<self.T_image_array.shape[1]-1):
                     
-                    Rotated_image_array[i,j]=self.T_image_array[round(x),round(y)]
+                    Sheared_image_array[i,j]=self.T_image_array[round(x),round(y)]
                     
                     
-                else:
-                    Rotated_image_array[i,j]=255
 
             
-        self.Nearest_Neighbor_Rotation_graphicsView.canvas.axes.clear()
-        self.Nearest_Neighbor_Rotation_graphicsView.canvas.axes.imshow(Rotated_image_array)
-        self.Nearest_Neighbor_Rotation_graphicsView.canvas.draw()
+        self.Shearing_graphicsView.canvas.axes.clear()
+        self.Shearing_graphicsView.canvas.axes.imshow(Sheared_image_array,cmap=("gray"))
+        self.Shearing_graphicsView.canvas.draw()
                 
 
-
-
-######################################################## Bilinear Rotation ################################################################
     
 
     
