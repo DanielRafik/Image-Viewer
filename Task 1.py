@@ -335,14 +335,15 @@ class UI(QMainWindow):
                 x= (i-midx)*math.cos(self.rads)+(j-midy)*math.sin(self.rads)
                 y= -(i-midx)*math.sin(self.rads)+(j-midy)*math.cos(self.rads)
 
-                if x>self.T_image_height-1 or y>self.T_image_width-1:
-                    x=int(x)+midx 
-                    y=int(y)+midy 
+                # if x>self.T_image_height-1 or y>self.T_image_width-1:
+                #     x=int(x)+midx 
+                #     y=int(y)+midy 
                     
-                else:
-                    x=round(x)+midx 
-                    y=round(y)+midy 
-
+                # else:
+                #     x=round(x)+midx 
+                #     y=round(y)+midy 
+                x=x+midx
+                y=y+midy
 
                 if (round(x)>=0 and round(y)>=0 and round(x)<self.T_image_array.shape[0]-1 and  round(y)<self.T_image_array.shape[1]-1):
                     x_floor = math.floor(x)
