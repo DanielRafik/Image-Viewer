@@ -29,12 +29,14 @@ class UI(QMainWindow):
         self.Apply_Button.clicked.connect(self.Apply_Zoom)
         self.Rotate_Button.clicked.connect(self.Apply_rotation)
         self.Shear_Button.clicked.connect(self.Apply_Nearest_Neighbor_Shearing)
+        self.Browse_Equalization_Button.clicked.connect(self.Equalization_Browse)
+        self.Apply_Equalization_Button.clicked.connect(self.Apply_Equalization)
         self.Normal_tableWidget.setColumnWidth(0,470)
         self.Normal_tableWidget.setColumnWidth(1,470)
         self.Dicom_tableWidget.setColumnWidth(0,470)
         self.Dicom_tableWidget.setColumnWidth(1,470)
-        self.New_Dimensions_tableWidget.setColumnWidth(0,1000)
-        self.New_Dimensions_tableWidget.setColumnWidth(1,1000)
+        # self.New_Dimensions_tableWidget.setColumnWidth(0,1000)
+        # self.New_Dimensions_tableWidget.setColumnWidth(1,1000)
         
         self.Draw_T_image()
         self.show()
@@ -61,6 +63,7 @@ class UI(QMainWindow):
                 self.Read_Normal()
                 self.Show_Normal_Readings()
                 self.Image_label.setPixmap(self.Normal_pix_image)
+                self.Original_Image_Equalization_label.setPixmap(self.Normal_pix_image)
 
 ###########################################  IF DICOM FILE  ############################################################
         elif file_name[0].endswith(".dcm"):
@@ -75,6 +78,7 @@ class UI(QMainWindow):
                 self.Read_Dicom()
                 self.Show_Dicom_Readings()
                 self.Image_label.setPixmap(self.Dicom_image)
+                self.Original_Image_Equalization_label.setPixmap(self.Dicom_image)
             
 
 ###########################################  CONVERT DICOM TO PIL  ############################################################
@@ -160,9 +164,16 @@ class UI(QMainWindow):
                 self.New_height=int(self.Image_height*self.zooming_factor)
                 self.Apply_Nearest_Neighbor_zooming()
                 self.Apply_Bilinear_zooming()
-                self.Show_new_dimensions()
+                #self.Show_new_dimensions()
             else:
                     QMessageBox.about(self,"Error","Value not acceptable!")
+    
+    def Convert_to_pixmap(self,pil_image):
+        Image_array=np.asarray(pil_image)
+        New_Image=Image_array.astype('uint8')
+        New_Image=Image.fromarray(New_Image,mode='L')
+        Pixmap_Image=New_Image.toqpixmap()
+        return Pixmap_Image
         
         
 ################################################################# CONVERT TO GRAY SCALE ################################################################
@@ -185,14 +196,14 @@ class UI(QMainWindow):
 
 ##################################################################### Show new dimensions ###############################################################  
     
-    def Show_new_dimensions(self):
-        Readings=[{"Property":"Height","Value":self.New_height},{"Property":"width","Value":self.New_width}]
-        self.New_Dimensions_tableWidget.setRowCount(len(Readings))
-        row=0
-        for i in Readings:
-            self.New_Dimensions_tableWidget.setItem(row,0, QtWidgets.QTableWidgetItem(i["Property"]))
-            self.New_Dimensions_tableWidget.setItem(row,1, QtWidgets.QTableWidgetItem(str(i["Value"])))
-            row=row+1
+    # def Show_new_dimensions(self):
+    #     Readings=[{"Property":"Height","Value":self.New_height},{"Property":"width","Value":self.New_width}]
+    #     self.New_Dimensions_tableWidget.setRowCount(len(Readings))
+    #     row=0
+    #     for i in Readings:
+    #         self.New_Dimensions_tableWidget.setItem(row,0, QtWidgets.QTableWidgetItem(i["Property"]))
+    #         self.New_Dimensions_tableWidget.setItem(row,1, QtWidgets.QTableWidgetItem(str(i["Value"])))
+    #         row=row+1
 
 ###################################################################### BILINEAR FUNCTION ############################################################################
     def Apply_Bilinear_zooming(self):
@@ -274,6 +285,13 @@ class UI(QMainWindow):
         except:
             QMessageBox.about(self,"Error","Please enter a value!")
         else:
+            if(self.degree>0):
+                self.lineEdit_2.setText("Anticlockwise")
+            elif self.degree ==0:
+                
+                self.lineEdit_2.setText("No rotation")
+            else:
+                self.lineEdit_2.setText("Clockwise")
             self.rads = math.radians(self.degree)
     # We consider the rotated image to be of the same size as the original
             self.rot_img = np.uint8(np.zeros(self.T_image_array.shape))
@@ -335,20 +353,14 @@ class UI(QMainWindow):
                 x= (i-midx)*math.cos(self.rads)+(j-midy)*math.sin(self.rads)
                 y= -(i-midx)*math.sin(self.rads)+(j-midy)*math.cos(self.rads)
 
-                # if x>self.T_image_height-1 or y>self.T_image_width-1:
-                #     x=int(x)+midx 
-                #     y=int(y)+midy 
-                    
-                # else:
-                #     x=round(x)+midx 
-                #     y=round(y)+midy 
+        
                 x=x+midx
                 y=y+midy
 
                 if (round(x)>=0 and round(y)>=0 and round(x)<self.T_image_array.shape[0]-1 and  round(y)<self.T_image_array.shape[1]-1):
                     x_floor = math.floor(x)
                     # min to avoid index error
-                    x_ceil = min( self.T_image_height - 1, math.ceil(x))
+                    x_ceil = min(self.T_image_height - 1, math.ceil(x))
                     y_floor = math.floor(y)
                     y_ceil = min(self.T_image_width - 1, math.ceil(y))
 
@@ -416,9 +428,74 @@ class UI(QMainWindow):
         self.Shearing_graphicsView.canvas.draw()
                 
 
-    
+#####################################################################################################################################################
+##################################################### EQUALIZATION TAB  `######################################################################################
+######################################################################################################################################################
+    def Equalization_Browse(self):
+        self.Browse()
+        self.Convert_to_gray()
+        global Final_Gray_image
+        self.Gray_image_array=np.asarray(self.Gray_Image)
+        Final_Gray_image=self.Convert_to_pixmap(self.Gray_image_array)
+        global pixels,counts
+        pixels,counts=self.Histogram(self.Gray_Image)
+        self.Original_Image_graphicsView.canvas.axes.clear()
+        self.Original_Image_graphicsView.canvas.axes.bar(pixels,counts)
+        self.Original_Image_graphicsView.canvas.draw()
 
+
+    def Apply_Equalization(self):
+        self.Original_Image_Equalization_label.setPixmap(Final_Gray_image)
+        print()
+
+
+########################################################## Histogram Function #######################################################################
+    def Histogram(self,img):
+        pixels=[]
+  #create list of values 0-255
+        for x in range(256):
+            pixels.append(x)
+   #initialize width and height of image
+        img_array=np.asarray(img)
+        New_array=img_array.reshape(-1)
+        img_array_length=len(New_array)
+        counts=[]
+        #for each intensity value
+        for i in pixels:
+            #set counter to 0
+            temp=0
+            #traverse through the pixels
+            for x in range(img_array_length):
+            
+#if pixel intensity equal to intensity level  
+ #increment counter
+                if (New_array[x]==i):
+                    temp=temp+1
+
+            #append frequency of intensity level 
+            print(temp)
+            counts.append(temp)
+        counts_sum=sum(counts)
+        pdf=[]
+        for i in counts:
+            pdf.append(i/counts_sum)
+        #plot histogram
+        return pixels,pdf
+
+
+def Equalize_Histogram(self,hist):
+    global cdf
+    cdf=[]
+    total=0
+    for i in counts:
+        total=total+i
+        cdf.append(total)
     
+    tr=[]
+    for i in cdf:
+        t=round(i*255)
+        tr.append(t)
+    print()
 ######################################################### RUN THE APP ##############################################################################
 app = QApplication(sys.argv)
 UIWindow = UI()
