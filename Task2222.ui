@@ -1396,17 +1396,17 @@ QSizeGrip
            <string>Original</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
-           <item row="0" column="0">
-            <widget class="QLabel" name="Original_Image_Equalization_label">
-             <property name="text">
-              <string/>
-             </property>
-             <property name="scaledContents">
-              <bool>true</bool>
+           <item row="0" column="1">
+            <widget class="MplWidget" name="Original_Histogram_graphicsView">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
+           <item row="0" column="0">
             <widget class="MplWidget" name="Original_Image_graphicsView">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1432,16 +1432,16 @@ QSizeGrip
           </property>
           <layout class="QGridLayout" name="gridLayout_16">
            <item row="1" column="1">
-            <widget class="QLabel" name="Equalized_Image_label">
-             <property name="text">
-              <string/>
-             </property>
-             <property name="scaledContents">
-              <bool>true</bool>
+            <widget class="MplWidget" name="Equalized_Histogram_graphicsView">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
             </widget>
            </item>
-           <item row="1" column="2">
+           <item row="1" column="0">
             <widget class="MplWidget" name="Equalized_Image_graphicsView">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">

@@ -55,7 +55,7 @@ class UI(QMainWindow):
 ######################################  HANDLING THE ERROR  ####################################################
             try:
                 self.normal_pil_image=Image.open(file_name[0])
-               
+                # self.cv_image=cv2.open(file_name[0])
             except:
                 QMessageBox.about(self,"Error","Error in type")
             else:
@@ -63,11 +63,13 @@ class UI(QMainWindow):
                 self.Read_Normal()
                 self.Show_Normal_Readings()
                 self.Image_label.setPixmap(self.Normal_pix_image)
-                self.Original_Image_Equalization_label.setPixmap(self.Normal_pix_image)
+                # self.Original_Image_Equalization_label.setPixmap(self.Normal_pix_image)
 
 ###########################################  IF DICOM FILE  ############################################################
         elif file_name[0].endswith(".dcm"):
             try:
+                #self.cv_image=cv2.open()
+
                 self.ds = pydicom.dcmread(file_name[0])
             except:
                 QMessageBox.about(self,"Error","Error in type")
@@ -78,7 +80,7 @@ class UI(QMainWindow):
                 self.Read_Dicom()
                 self.Show_Dicom_Readings()
                 self.Image_label.setPixmap(self.Dicom_image)
-                self.Original_Image_Equalization_label.setPixmap(self.Dicom_image)
+                # self.Original_Image_Equalization_label.setPixmap(self.Dicom_image)
             
 
 ###########################################  CONVERT DICOM TO PIL  ############################################################
@@ -167,7 +169,9 @@ class UI(QMainWindow):
                 #self.Show_new_dimensions()
             else:
                     QMessageBox.about(self,"Error","Value not acceptable!")
-    
+
+
+########################################################### convert to pixmap ############################################################################
     def Convert_to_pixmap(self,pil_image):
         Image_array=np.asarray(pil_image)
         New_Image=Image_array.astype('uint8')
@@ -428,6 +432,8 @@ class UI(QMainWindow):
         self.Shearing_graphicsView.canvas.draw()
                 
 
+
+
 #####################################################################################################################################################
 ##################################################### EQUALIZATION TAB  `######################################################################################
 ######################################################################################################################################################
@@ -439,26 +445,63 @@ class UI(QMainWindow):
         Final_Gray_image=self.Convert_to_pixmap(self.Gray_image_array)
         global pixels,counts
         pixels,counts=self.Histogram(self.Gray_Image)
+        self.Original_Histogram_graphicsView.canvas.axes.clear()
+        self.Original_Histogram_graphicsView.canvas.axes.bar(pixels,counts)
+        self.Original_Histogram_graphicsView.canvas.draw()
         self.Original_Image_graphicsView.canvas.axes.clear()
-        self.Original_Image_graphicsView.canvas.axes.bar(pixels,counts)
+        self.Original_Image_graphicsView.canvas.axes.imshow(self.Gray_image_array)
         self.Original_Image_graphicsView.canvas.draw()
 
 
     def Apply_Equalization(self):
-        self.Original_Image_Equalization_label.setPixmap(Final_Gray_image)
-        print()
-
+        try:
+            self.Original_Image_graphicsView.canvas.axes.clear()
+            self.Original_Image_graphicsView.canvas.axes.imshow(self.Gray_image_array)
+            self.Original_Image_graphicsView.canvas.draw()
+        except:
+            QMessageBox.about(self,"Error","Please Browse a file!")
+        else:
+            global new_pixels,new_counts
+            new_pixels,new_counts=self.Equalize_Histogram(pixels,counts)
+            self.Equalized_Histogram_graphicsView.canvas.axes.clear()
+            self.Equalized_Histogram_graphicsView.canvas.axes.bar(new_pixels,new_counts)
+            self.Equalized_Histogram_graphicsView.canvas.draw()
+            self.Equalized_image=self.equalization()
+            self.Equalized_Image_graphicsView.canvas.axes.clear()
+            self.Equalized_Image_graphicsView.canvas.axes.imshow(self.Equalized_image)
+            self.Equalized_Image_graphicsView.canvas.axes.draw()
+            # for i in range(len(new_counts)):
+            #     new_counts[i]=new_counts[i]*counts_sum
+            # cdf=[]
+            # total=0
+            # for i in new_counts:
+            #     total=total+i
+            #     cdf.append(total)
+            # New_Image=np.asarray(cdf)
+            # nj=(New_Image-New_Image.min())*255
+            # N=New_Image.max()-New_Image.min()
+            # New_Image=nj/N
+            # New_Image = New_Image.astype('uint8')
+            # #temp=New_Image[Flatten_array]
+            # self.Original_Image_graphicsView.canvas.axes.clear()
+            # self.Original_Image_graphicsView.canvas.axes.bar(new_pixels,temp)
+            # self.Original_Image_graphicsView.canvas.draw()
+        
+            #self.Equalized_Image_graphicsView.canvas.axes.imshow(New_Image)
+        
 
 ########################################################## Histogram Function #######################################################################
     def Histogram(self,img):
         pixels=[]
-  #create list of values 0-255
+        #create list of values 0-255
         for x in range(256):
             pixels.append(x)
-   #initialize width and height of image
+        #initialize width and height of image
         img_array=np.asarray(img)
-        New_array=img_array.reshape(-1)
-        img_array_length=len(New_array)
+        global Flatten_array
+        Flatten_array=img_array.flatten()
+        # New_array=img_array.reshape(-1)
+        img_array_length=len(Flatten_array)
         counts=[]
         #for each intensity value
         for i in pixels:
@@ -466,36 +509,77 @@ class UI(QMainWindow):
             temp=0
             #traverse through the pixels
             for x in range(img_array_length):
-            
-#if pixel intensity equal to intensity level  
- #increment counter
-                if (New_array[x]==i):
+                #if pixel intensity equal to intensity level  
+                #increment counter
+                if (Flatten_array[x]==i):
                     temp=temp+1
 
             #append frequency of intensity level 
-            print(temp)
+      
             counts.append(temp)
+        print('########################################################## counts #####################################')
+        print(counts)
+         # Normalizing histogram 
+        global counts_sum
         counts_sum=sum(counts)
+        countsmoh=np.asanyarray(counts)
+        thenormalized=countsmoh/(self.Gray_image_array.shape[0]*self.Gray_image_array.shape[1])
         pdf=[]
         for i in counts:
             pdf.append(i/counts_sum)
-        #plot histogram
-        return pixels,pdf
+        print('########################################################## pdf #####################################')
+        print(pdf)
+        print('########################################################## mohra pdf #####################################')
+        print(thenormalized)
+        return pixels,thenormalized
 
 
-def Equalize_Histogram(self,hist):
-    global cdf
-    cdf=[]
-    total=0
-    for i in counts:
-        total=total+i
-        cdf.append(total)
-    
-    tr=[]
-    for i in cdf:
-        t=round(i*255)
-        tr.append(t)
-    print()
+
+############################################################### Equalizing Histogram ##############################################################
+    def Equalize_Histogram(self,xpixels,xcounts):
+        xpixels = pixels
+        xcounts = counts
+        #initialize list for cumulative probability 
+        cdf=[]
+        total=0
+        for i in xcounts:
+            total=total+i
+            cdf.append(total)
+
+        print('########################################################## cdf #####################################')
+        print(cdf)
+        #intialize list for mapping cdf
+        tr=[]
+        for i in cdf:
+            t=round(i*255)
+            tr.append(t)
+        print('########################################################## tr #####################################')
+        print(tr)
+        #intialize list for mapping cdf
+        Final=[]
+        for i in xpixels:
+            count=0
+            tot=0
+            for j in tr:
+                if (j==i):
+                    tot=tot+xcounts[count]
+                count=count+1
+            Final.append(tot)
+        print('########################################################## Final #####################################')
+        print(Final)
+        return xpixels , Final
+
+    def equalization(self):
+        xpixels , css = self.Equalize_Histogram(pixels,new_counts)
+        css = np.array(css)
+        css = np.multiply(css,1/css.max()) #normalize the cumulative
+        css = np.multiply(css,255) #rescale to [0,255]
+        cs = np.round(css) # round the cumulative
+        cs = cs.astype('uint8')
+        img_new = cs[Flatten_array] # put array back into original shape since we flattened it
+        img_new = np.reshape(img_new, self.Gray_image_array.shape)
+        print(str(img_new.shape)) # reshape the equalized image as the original shape
+        return img_new
 ######################################################### RUN THE APP ##############################################################################
 app = QApplication(sys.argv)
 UIWindow = UI()
