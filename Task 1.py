@@ -35,12 +35,19 @@ class UI(QMainWindow):
         self.Normal_tableWidget.setColumnWidth(1,470)
         self.Dicom_tableWidget.setColumnWidth(0,470)
         self.Dicom_tableWidget.setColumnWidth(1,470)
+        self.set_Equalization_Histogram_UI()
         # self.New_Dimensions_tableWidget.setColumnWidth(0,1000)
         # self.New_Dimensions_tableWidget.setColumnWidth(1,1000)
         
         self.Draw_T_image()
         self.show()
-
+##########################################################################################################################################################
+######################################################### SET UI ELEMENTS #########################################################################################
+    def set_Equalization_Histogram_UI(self):
+        self.Equalized_Histogram_graphicsView.canvas.axes.set_xlabel('Intensity')
+        self.Equalized_Histogram_graphicsView.canvas.axes.set_ylabel('Probability')
+        self.Original_Histogram_graphicsView.canvas.axes.set_xlabel('Intensity')
+        self.Original_Histogram_graphicsView.canvas.axes.set_ylabel('Probability')
 #####################################################################################################################################################
 ##################################################### IMAGE VIEWER TAB######################################################################################
 ######################################################################################################################################################
@@ -455,14 +462,16 @@ class UI(QMainWindow):
         self.iimg=np.asarray(Pil_img)
         self.flat=self.iimg.flatten()
         
-        self.graphicsView.canvas.axes.clear()
-        self.graphicsView.canvas.axes.imshow(Pil_img,cmap='gray')
-        self.graphicsView.canvas.draw()
+        self.Original_Image_graphicsView.canvas.axes.clear()
+        self.Original_Image_graphicsView.canvas.axes.imshow(Pil_img,cmap='gray')
+        self.Original_Image_graphicsView.canvas.draw()
         global pixels,counts
         pixels,counts=self.Histogram(Pil_img)
-        self.Original_Image_graphicsView.canvas.axes.clear()
-        self.Original_Image_graphicsView.canvas.axes.bar(pixels,counts)
-        self.Original_Image_graphicsView.canvas.draw()
+        self.Original_Histogram_graphicsView.canvas.axes.clear()
+        self.Original_Histogram_graphicsView.canvas.axes.bar(pixels,counts)
+        self.set_Equalization_Histogram_UI()
+        self.Original_Histogram_graphicsView.canvas.draw()
+        
 
 
     def Apply_Equalization(self):
@@ -471,9 +480,11 @@ class UI(QMainWindow):
         new_pixels,new_counts,tr=self.Equalize_Histogram(pixels,counts)
         self.Equalized_Histogram_graphicsView.canvas.axes.clear()
         self.Equalized_Histogram_graphicsView.canvas.axes.bar(new_pixels,new_counts)
+        self.set_Equalization_Histogram_UI()
         self.Equalized_Histogram_graphicsView.canvas.draw()
-        for i in range(len(new_counts)):
-            new_counts[i]=new_counts[i]*counts_sum
+        
+        # for i in range(len(new_counts)):
+        #     new_counts[i]=new_counts[i]*counts_sum
         tr2=np.array(tr)
         #trr=tr2[self.flat]
         tr2=tr2.astype('uint8')
@@ -485,7 +496,6 @@ class UI(QMainWindow):
         # # self.Original_Image_graphicsView.canvas.axes.bar(new_pixels,new_counts)
         # # self.Original_Image_graphicsView.canvas.draw()
         self.Equalized_Image_graphicsView.canvas.axes.clear()
-        
         self.Equalized_Image_graphicsView.canvas.axes.imshow(img_new,cmap='gray')
         self.Equalized_Image_graphicsView.canvas.draw()
 
