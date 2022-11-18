@@ -453,7 +453,9 @@ class UI(QMainWindow):
         #Pil_img=Image.open(file_path)
 
         self.Browse()
+
         Pil_img=self.normal_pil_image
+        # Pil_img=Pil_img.convert(mode='L')
         #self.Convert_to_gray()
         #global Final_Gray_image
         #self.Gray_image_array=np.asarray(self.Gray_Image)
@@ -506,6 +508,7 @@ class UI(QMainWindow):
         for x in range(256):
             pixels.append(x)
         #initialize width and height of image
+        # img=img.convert(mode='L')
         img_array=np.asarray(img)
         New_array=img_array.reshape(-1)
         img_array_length=len(New_array)

@@ -1439,9 +1439,9 @@ QSizeGrip
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
-             <property name="viewportUpdateMode">
+             <!-- <property name="viewportUpdateMode">
               <enum>QGraphicsView::BoundingRectViewportUpdate</enum>
-             </property>
+             </property> -->
             </widget>
            </item>
            <item row="0" column="1">
