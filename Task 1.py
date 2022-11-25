@@ -32,6 +32,8 @@ class UI(QMainWindow):
         self.Browse_Equalization_Button.clicked.connect(self.Equalization_Browse)
         self.Apply_Equalization_Button.clicked.connect(self.Apply_Equalization)
         self.Apply_Filter_Button.clicked.connect(self.Apply_Kernel_Filter)
+        self.Add_Noise_Button.clicked.connect(self.Apply_Noise)
+        self.Filter_Noise_Button.clicked.connect(self.filter_noise)
         self.Normal_tableWidget.setColumnWidth(0,470)
         self.Normal_tableWidget.setColumnWidth(1,470)
         self.Dicom_tableWidget.setColumnWidth(0,470)
@@ -551,13 +553,14 @@ class UI(QMainWindow):
     def Apply_Kernel_Filter(self):
         self.Convert_to_gray()
         gray_array=np.asarray(self.Gray_Image)
-        Kernel_Size=int(self.Kernel_Size_lineEdit.text())
+        global Filter_Size
+        Filter_Size=int(self.Filter_Size_lineEdit.text())
         multiplication_factor=int(self.Multiplication_Factor_lineEdit.text())
-        Kernel_Filter=np.ones((Kernel_Size, Kernel_Size), np.float32)
+        Kernel_Filter=np.ones((Filter_Size, Filter_Size), np.float32)
         Kernel_Filter.shape
         test= np.array([[1, 2, 3], [3, 4, 5], [6, 7, 8]])
-        Kernel_Filter=Kernel_Filter/(Kernel_Size**2)
-        padding=(int(Kernel_Size/2))
+        Kernel_Filter=Kernel_Filter/(Filter_Size**2)
+        padding=(int(Filter_Size/2))
         Post_convolution_image=self.convolve2D(gray_array,Kernel_Filter,padding=padding)
         Post_substraction_array=self.substarct_arrays(Post_convolution_image,gray_array)
         print("##########################################Convolution image###################################")
@@ -567,6 +570,7 @@ class UI(QMainWindow):
         Post_multiplication_array=multiplication_factor*Post_substraction_array
         print('############################## Post multiplication ###################################')
         print(Post_multiplication_array)
+        global Final_Enhanced_image
         Final_Enhanced_image=self.addition_arrays(Post_multiplication_array,gray_array)
         for x in range(Final_Enhanced_image.shape[0]):
             for y in range(Final_Enhanced_image.shape[1]):
@@ -583,25 +587,101 @@ class UI(QMainWindow):
         self.Enhanced_Image_Filter_graphicsView.canvas.draw()
 
 
-    
+
+################################################################## Apply Noise ########################################################################
+    def Apply_Noise (self):
+        global Noisy_image
+        Noisy_image=self.add_noise(Final_Enhanced_image)
+        self.Original_Image_Filter_Tab_graphicsView.canvas.axes.clear()
+        self.Original_Image_Filter_Tab_graphicsView.canvas.axes.imshow(Noisy_image,cmap='gray')
+        self.Original_Image_Filter_Tab_graphicsView.canvas.draw()
+
+
+################################################################## Filter Noise ####################################################################
+    def filter_noise(self):
+        Filtered_Noise_Image=self.median_filter(Noisy_image,Filter_Size)
+        print('##################################### After Noise FIlter ################')
+        print(Filtered_Noise_Image)
+        self.Enhanced_Image_Filter_graphicsView.canvas.axes.clear()
+        self.Enhanced_Image_Filter_graphicsView.canvas.axes.imshow(Filtered_Noise_Image,cmap='gray')
+        self.Enhanced_Image_Filter_graphicsView.canvas.draw()
+        
+
+#################################################################### Median Filter #####################################################################
+    def median_filter(self,data, filter_size):
+        temp = []
+        indexer = filter_size // 2
+        data_final = []
+        data_final = np.zeros((len(data),len(data[0])))
+        for i in range(len(data)):
+
+            for j in range(len(data[0])):
+
+                for z in range(filter_size):
+                    if i + z - indexer < 0 or i + z - indexer > len(data) - 1:
+                        for c in range(filter_size):
+                            temp.append(0)
+                    else:
+                        if j + z - indexer < 0 or j + indexer > len(data[0]) - 1:
+                            temp.append(0)
+                        else:
+                            for k in range(filter_size):
+                                temp.append(data[i + z - indexer][j + k - indexer])
+
+                temp.sort()
+                data_final[i][j] = temp[len(temp) // 2]
+                temp = []
+        return data_final
 ################################################################### cv open image ########################################################################
     def processImage(self,image): 
         image = cv2.imread(image) 
         image = cv2.cvtColor(src=image, code=cv2.COLOR_BGR2GRAY) 
         return image
 
+
+################################################################### Substract arrays ########################################################################
     def substarct_arrays(self,array_substracted,original_array):
         output = np.zeros((array_substracted.shape[0], array_substracted.shape[1]))
         for x in range(array_substracted.shape[0]):
             for y in range(array_substracted.shape[1]):
                 output[x, y] = original_array[x,y]-array_substracted[x,y]
         return output
+
+
+################################################################### addition to arrays ########################################################################
     def addition_arrays(self,array_substracted,original_array):
         output = np.zeros((array_substracted.shape[0], array_substracted.shape[1]))
         for x in range(array_substracted.shape[0]):
             for y in range(array_substracted.shape[1]):
                 output[x, y] = original_array[x,y]+array_substracted[x,y]  
         return output
+
+
+############################################################### add Noise function ########################################################
+    def add_noise(self, img):
+         # Getting the dimensions of the image
+        row , col = img.shape
+        # Pick a random number between 600 and 20000
+        number_of_pixels = random.randint(600, 20000)
+        for i in range(number_of_pixels):
+            # Pick a random y coordinate
+            y_coord=random.randint(0, row - 1)
+            # Pick a random x coordinate
+            x_coord=random.randint(0, col - 1)
+            # Color that pixel to white
+            img[y_coord][x_coord] = 255
+        
+        number_of_pixels = random.randint(600, 20000)
+        for i in range(number_of_pixels):
+            # Pick a random y coordinate
+            y_coord=random.randint(0, row - 1)
+            # Pick a random x coordinate
+            x_coord=random.randint(0, col - 1)
+            # Color that pixel to black
+            img[y_coord][x_coord] = 0
+            
+        return img
+            
 ################################################################### Convolution #####################################################################
     def convolve2D(self,image, kernel, padding=0, strides=1):
         # Cross Correlation
