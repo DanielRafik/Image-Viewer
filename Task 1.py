@@ -24,13 +24,14 @@ import matplotlib.image as img
 class UI(QMainWindow):
     def __init__(self):
         super(UI, self).__init__()
-        uic.loadUi(r"Task22.ui", self)
+        uic.loadUi(r"Task2222.ui", self)
         self.Browse_Button.clicked.connect(self.Browse)
         self.Apply_Button.clicked.connect(self.Apply_Zoom)
         self.Rotate_Button.clicked.connect(self.Apply_rotation)
         self.Shear_Button.clicked.connect(self.Apply_Nearest_Neighbor_Shearing)
         self.Browse_Equalization_Button.clicked.connect(self.Equalization_Browse)
         self.Apply_Equalization_Button.clicked.connect(self.Apply_Equalization)
+        self.Apply_Filter_Button.clicked.connect(self.Apply_Kernel_Filter)
         self.Normal_tableWidget.setColumnWidth(0,470)
         self.Normal_tableWidget.setColumnWidth(1,470)
         self.Dicom_tableWidget.setColumnWidth(0,470)
@@ -70,6 +71,7 @@ class UI(QMainWindow):
                 self.Read_Normal()
                 self.Show_Normal_Readings()
                 self.Image_label.setPixmap(self.Normal_pix_image)
+                print(self.normal_pil_image)
                 #self.Original_Image_Equalization_label.setPixmap(self.Normal_pix_image)
 
 ###########################################  IF DICOM FILE  ############################################################
@@ -193,6 +195,7 @@ class UI(QMainWindow):
     def Convert_to_gray(self):
         if file_name[0].endswith(".bmp") | file_name[0].endswith(".jpeg")| file_name[0].endswith(".jpg") | file_name[0].endswith(".png"):
             self.Gray_Image=self.normal_pil_image.convert('L')
+            print(self.Gray_Image)
         elif file_name[0].endswith(".dcm"):
             self.Gray_Image=self.final_pil_image.convert('L')
 ################################################################# NEAREST NEIGHBOR FUNCTION ############################################################################
@@ -447,23 +450,10 @@ class UI(QMainWindow):
 ##################################################### EQUALIZATION TAB  `######################################################################################
 ######################################################################################################################################################
     def Equalization_Browse(self):
-        #file_name=QFileDialog.getOpenFileName(self, "Browse Image", "../", "*.dcm;;" "*.bmp;;" "*.jpeg;;" "*.png;;" )
-        #global file_path
-        #file_path =file_name[0]
-        #Pil_img=Image.open(file_path)
-
         self.Browse()
-
         Pil_img=self.normal_pil_image
-        # Pil_img=Pil_img.convert(mode='L')
-        #self.Convert_to_gray()
-        #global Final_Gray_image
-        #self.Gray_image_array=np.asarray(self.Gray_Image)
-        #Final_Gray_image=self.Convert_to_pixmap(self.Gray_image_array)
-        # Pil_imggg=Pil_img.convert(mode='L')
         self.iimg=np.asarray(Pil_img)
         self.flat=self.iimg.flatten()
-        
         self.Original_Image_graphicsView.canvas.axes.clear()
         self.Original_Image_graphicsView.canvas.axes.imshow(Pil_img,cmap='gray')
         self.Original_Image_graphicsView.canvas.draw()
@@ -484,19 +474,10 @@ class UI(QMainWindow):
         self.Equalized_Histogram_graphicsView.canvas.axes.bar(new_pixels,new_counts)
         self.set_Equalization_Histogram_UI()
         self.Equalized_Histogram_graphicsView.canvas.draw()
-        
-        # for i in range(len(new_counts)):
-        #     new_counts[i]=new_counts[i]*counts_sum
         tr2=np.array(tr)
-        #trr=tr2[self.flat]
         tr2=tr2.astype('uint8')
-        #trr=np.reshape(trr,self.cv_image)
-        # New_Image=np.asarray(new_counts)
         img_new=tr2[self.flat]
         img_new=np.reshape(img_new,self.iimg.shape)
-        # # self.Original_Image_graphicsView.canvas.axes.clear()
-        # # self.Original_Image_graphicsView.canvas.axes.bar(new_pixels,new_counts)
-        # # self.Original_Image_graphicsView.canvas.draw()
         self.Equalized_Image_graphicsView.canvas.axes.clear()
         self.Equalized_Image_graphicsView.canvas.axes.imshow(img_new,cmap='gray')
         self.Equalized_Image_graphicsView.canvas.draw()
@@ -508,7 +489,6 @@ class UI(QMainWindow):
         for x in range(256):
             pixels.append(x)
         #initialize width and height of image
-        # img=img.convert(mode='L')
         img_array=np.asarray(img)
         New_array=img_array.reshape(-1)
         img_array_length=len(New_array)
@@ -564,6 +544,108 @@ class UI(QMainWindow):
                 count=count+1
             Final.append(tot)
         return pixels,Final,tr
+
+#####################################################################################################################################################
+##################################################### FILTER TAB  `######################################################################################
+######################################################################################################################################################
+    def Apply_Kernel_Filter(self):
+        self.Convert_to_gray()
+        gray_array=np.asarray(self.Gray_Image)
+        Kernel_Size=int(self.Kernel_Size_lineEdit.text())
+        multiplication_factor=int(self.Multiplication_Factor_lineEdit.text())
+        Kernel_Filter=np.ones((Kernel_Size, Kernel_Size), np.float32)
+        Kernel_Filter.shape
+        test= np.array([[1, 2, 3], [3, 4, 5], [6, 7, 8]])
+        Kernel_Filter=Kernel_Filter/(Kernel_Size**2)
+        padding=(int(Kernel_Size/2))
+        Post_convolution_image=self.convolve2D(gray_array,Kernel_Filter,padding=padding)
+        Post_substraction_array=self.substarct_arrays(Post_convolution_image,gray_array)
+        print("##########################################Convolution image###################################")
+        print(Post_convolution_image)
+        print('############################## Post substarction ###################################')
+        print(Post_substraction_array)
+        Post_multiplication_array=multiplication_factor*Post_substraction_array
+        print('############################## Post multiplication ###################################')
+        print(Post_multiplication_array)
+        Final_Enhanced_image=self.addition_arrays(Post_multiplication_array,gray_array)
+        for x in range(Final_Enhanced_image.shape[0]):
+            for y in range(Final_Enhanced_image.shape[1]):
+                if(Final_Enhanced_image[x,y]<0):
+                    Final_Enhanced_image[x,y]=0
+                elif(Final_Enhanced_image[x,y]>255):
+                    Final_Enhanced_image[x,y]=255
+        
+        self.Original_Image_Filter_Tab_graphicsView.canvas.axes.clear()
+        self.Original_Image_Filter_Tab_graphicsView.canvas.axes.imshow(gray_array,cmap='gray')
+        self.Original_Image_Filter_Tab_graphicsView.canvas.draw()
+        self.Enhanced_Image_Filter_graphicsView.canvas.axes.clear()
+        self.Enhanced_Image_Filter_graphicsView.canvas.axes.imshow(Final_Enhanced_image,cmap='gray')
+        self.Enhanced_Image_Filter_graphicsView.canvas.draw()
+
+
+    
+################################################################### cv open image ########################################################################
+    def processImage(self,image): 
+        image = cv2.imread(image) 
+        image = cv2.cvtColor(src=image, code=cv2.COLOR_BGR2GRAY) 
+        return image
+
+    def substarct_arrays(self,array_substracted,original_array):
+        output = np.zeros((array_substracted.shape[0], array_substracted.shape[1]))
+        for x in range(array_substracted.shape[0]):
+            for y in range(array_substracted.shape[1]):
+                output[x, y] = original_array[x,y]-array_substracted[x,y]
+        return output
+    def addition_arrays(self,array_substracted,original_array):
+        output = np.zeros((array_substracted.shape[0], array_substracted.shape[1]))
+        for x in range(array_substracted.shape[0]):
+            for y in range(array_substracted.shape[1]):
+                output[x, y] = original_array[x,y]+array_substracted[x,y]  
+        return output
+################################################################### Convolution #####################################################################
+    def convolve2D(self,image, kernel, padding=0, strides=1):
+        # Cross Correlation
+        kernel = np.flipud(np.fliplr(kernel))
+        
+        # Gather Shapes of Kernel + Image + Padding
+        xKernShape = kernel.shape[0]
+        yKernShape = kernel.shape[1]
+        xImgShape = image.shape[0]
+        yImgShape = image.shape[1]
+
+        # Shape of Output Convolution
+        xOutput = xImgShape
+        yOutput = yImgShape
+        output = np.zeros((xOutput, yOutput))
+
+        # Apply Equal Padding to All Sides
+        if padding != 0:
+            imagePadded = np.zeros((image.shape[0] + padding*2, image.shape[1] + padding*2))
+            imagePadded[int(padding):int(-1 * padding), int(padding):int(-1 * padding)] = image
+            print('############################## Padded image ###############################')
+            print(imagePadded)
+        else:
+            imagePadded = image
+
+        # Iterate through image
+        for y in range(image.shape[1]):
+            # Exit Convolution
+            if y > image.shape[1]:
+                break
+            # Only Convolve if y has gone down by the specified Strides
+            if y % strides == 0:
+                for x in range(image.shape[0]):
+                    # Go to next row once kernel is out of bounds
+                    if x > image.shape[0]:
+                        break
+                    try:
+                        # Only Convolve if x has moved by the specified Strides
+                        if x % strides == 0:
+                            output[x, y] = (kernel * imagePadded[x: x + xKernShape, y: y + yKernShape]).sum()
+                    except:
+                        break
+        
+        return output
 
 
 ######################################################### RUN THE APP ##############################################################################
