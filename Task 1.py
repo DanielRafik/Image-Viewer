@@ -205,7 +205,7 @@ class UI(QMainWindow):
         Zoomed_image=np.random.randint(100,size=(self.New_height,self.New_width))
         for i in range (0,self.New_height):
             for j in range (0,self.New_width):
-                Zoomed_image[i,j]=self.Gray_image_array[round(i/self.zooming_factor),round(j/self.zooming_factor)]
+                Zoomed_image[i,j]=self.Gray_image_array[int(i/self.zooming_factor),int(j/self.zooming_factor)]
         
         Zoomed_image=Zoomed_image.astype('uint8')
         Final_Zoomed_image=Image.fromarray(Zoomed_image,mode='L')
@@ -551,61 +551,79 @@ class UI(QMainWindow):
 ##################################################### FILTER TAB  `######################################################################################
 ######################################################################################################################################################
     def Apply_Kernel_Filter(self):
-        self.Convert_to_gray()
-        gray_array=np.asarray(self.Gray_Image)
-        global Filter_Size
-        Filter_Size=int(self.Filter_Size_lineEdit.text())
-        multiplication_factor=int(self.Multiplication_Factor_lineEdit.text())
-        Kernel_Filter=np.ones((Filter_Size, Filter_Size), np.float32)
-        Kernel_Filter.shape
-        test= np.array([[1, 2, 3], [3, 4, 5], [6, 7, 8]])
-        Kernel_Filter=Kernel_Filter/(Filter_Size**2)
-        padding=(int(Filter_Size/2))
-        Post_convolution_image=self.convolve2D(gray_array,Kernel_Filter,padding=padding)
-        Post_substraction_array=self.substarct_arrays(Post_convolution_image,gray_array)
-        print("##########################################Convolution image###################################")
-        print(Post_convolution_image)
-        print('############################## Post substarction ###################################')
-        print(Post_substraction_array)
-        Post_multiplication_array=multiplication_factor*Post_substraction_array
-        print('############################## Post multiplication ###################################')
-        print(Post_multiplication_array)
-        global Final_Enhanced_image
-        Final_Enhanced_image=self.addition_arrays(Post_multiplication_array,gray_array)
-        for x in range(Final_Enhanced_image.shape[0]):
-            for y in range(Final_Enhanced_image.shape[1]):
-                if(Final_Enhanced_image[x,y]<0):
-                    Final_Enhanced_image[x,y]=0
-                elif(Final_Enhanced_image[x,y]>255):
-                    Final_Enhanced_image[x,y]=255
-        
-        self.Original_Image_Filter_Tab_graphicsView.canvas.axes.clear()
-        self.Original_Image_Filter_Tab_graphicsView.canvas.axes.imshow(gray_array,cmap='gray')
-        self.Original_Image_Filter_Tab_graphicsView.canvas.draw()
-        self.Enhanced_Image_Filter_graphicsView.canvas.axes.clear()
-        self.Enhanced_Image_Filter_graphicsView.canvas.axes.imshow(Final_Enhanced_image,cmap='gray')
-        self.Enhanced_Image_Filter_graphicsView.canvas.draw()
+        try:
+            self.Convert_to_gray()
+            gray_array=np.asarray(self.Gray_Image)
+        except:
+            QMessageBox.about(self,"Error","Please Browse an image!")
+        else:
+            
+            global Filter_Size
+            try:
+                Filter_Size=int(self.Filter_Size_lineEdit.text())
+                multiplication_factor=int(self.Multiplication_Factor_lineEdit.text())
+            except:
+                QMessageBox.about(self,"Error","Please enter Requirements as intergers!")
+            else:
+                Kernel_Filter=np.ones((Filter_Size, Filter_Size), np.float32)
+                Kernel_Filter.shape
+                test= np.array([[1, 2, 3], [3, 4, 5], [6, 7, 8]])
+                Kernel_Filter=Kernel_Filter/(Filter_Size**2)
+                padding=(int(Filter_Size/2))
+                Post_convolution_image=self.convolve2D(gray_array,Kernel_Filter,padding=padding)
+                Post_substraction_array=self.substarct_arrays(Post_convolution_image,gray_array)
+                print("##########################################Convolution image###################################")
+                print(Post_convolution_image)
+                print('############################## Post substarction ###################################')
+                print(Post_substraction_array)
+                Post_multiplication_array=multiplication_factor*Post_substraction_array
+                print('############################## Post multiplication ###################################')
+                print(Post_multiplication_array)
+                global Final_Enhanced_image
+                Final_Enhanced_image=self.addition_arrays(Post_multiplication_array,gray_array)
+                for x in range(Final_Enhanced_image.shape[0]):
+                    for y in range(Final_Enhanced_image.shape[1]):
+                        if(Final_Enhanced_image[x,y]<0):
+                            Final_Enhanced_image[x,y]=0
+                        elif(Final_Enhanced_image[x,y]>255):
+                            Final_Enhanced_image[x,y]=255
+                
+                self.Original_Image_Filter_Tab_graphicsView.canvas.axes.clear()
+                self.Original_Image_Filter_Tab_graphicsView.canvas.axes.imshow(gray_array,cmap='gray')
+                self.Original_Image_Filter_Tab_graphicsView.canvas.draw()
+                self.Enhanced_Image_Filter_graphicsView.canvas.axes.clear()
+                self.Enhanced_Image_Filter_graphicsView.canvas.axes.imshow(Final_Enhanced_image,cmap='gray')
+                self.Enhanced_Image_Filter_graphicsView.canvas.draw()
 
 
 
 ################################################################## Apply Noise ########################################################################
     def Apply_Noise (self):
         global Noisy_image
-        Noisy_image=self.add_noise(Final_Enhanced_image)
-        self.Original_Image_Filter_Tab_graphicsView.canvas.axes.clear()
-        self.Original_Image_Filter_Tab_graphicsView.canvas.axes.imshow(Noisy_image,cmap='gray')
-        self.Original_Image_Filter_Tab_graphicsView.canvas.draw()
+        try:
+            Noisy_image=self.add_noise(Final_Enhanced_image)
+        except:
+            QMessageBox.about(self,"Error","Apply Kernel Filter!")
+        else:
+            self.Enhanced_Image_Filter_graphicsView.canvas.axes.clear()
+            self.Original_Image_Filter_Tab_graphicsView.canvas.axes.clear()
+            self.Original_Image_Filter_Tab_graphicsView.canvas.axes.imshow(Noisy_image,cmap='gray')
+            self.Original_Image_Filter_Tab_graphicsView.canvas.draw()
 
 
 ################################################################## Filter Noise ####################################################################
     def filter_noise(self):
-        Filtered_Noise_Image=self.median_filter(Noisy_image,Filter_Size)
-        print('##################################### After Noise FIlter ################')
-        print(Filtered_Noise_Image)
-        self.Enhanced_Image_Filter_graphicsView.canvas.axes.clear()
-        self.Enhanced_Image_Filter_graphicsView.canvas.axes.imshow(Filtered_Noise_Image,cmap='gray')
-        self.Enhanced_Image_Filter_graphicsView.canvas.draw()
-        
+        try:
+            Filtered_Noise_Image=self.median_filter(Noisy_image,Filter_Size)
+        except:
+            QMessageBox.about(self,"Error","Please enter add noise!")
+        else:
+            print('##################################### After Noise FIlter ################')
+            print(Filtered_Noise_Image)
+            self.Enhanced_Image_Filter_graphicsView.canvas.axes.clear()
+            self.Enhanced_Image_Filter_graphicsView.canvas.axes.imshow(Filtered_Noise_Image,cmap='gray')
+            self.Enhanced_Image_Filter_graphicsView.canvas.draw()
+            
 
 #################################################################### Median Filter #####################################################################
     def median_filter(self,data, filter_size):
