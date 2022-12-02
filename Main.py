@@ -34,6 +34,7 @@ class UI(QMainWindow):
         self.Apply_Filter_Button.clicked.connect(self.Apply_Kernel_Filter)
         self.Add_Noise_Button.clicked.connect(self.Apply_Noise)
         self.Filter_Noise_Button.clicked.connect(self.filter_noise)
+        self.Apply_Fourier_Transform_Button.clicked.connect(self.Apply_Fourier)
         self.Normal_tableWidget.setColumnWidth(0,470)
         self.Normal_tableWidget.setColumnWidth(1,470)
         self.Dicom_tableWidget.setColumnWidth(0,470)
@@ -73,7 +74,10 @@ class UI(QMainWindow):
                 self.Read_Normal()
                 self.Show_Normal_Readings()
                 self.Image_label.setPixmap(self.Normal_pix_image)
-                print(self.normal_pil_image)
+                imag=np.asarray(self.normal_pil_image)
+                self.Original_Image_Fourier_tab_graphicsView.canvas.axes.clear()
+                self.Original_Image_Fourier_tab_graphicsView.canvas.axes.imshow(imag,cmap='gray')
+                self.Original_Image_Fourier_tab_graphicsView.canvas.draw()
                 #self.Original_Image_Equalization_label.setPixmap(self.Normal_pix_image)
 
 ###########################################  IF DICOM FILE  ############################################################
@@ -91,7 +95,11 @@ class UI(QMainWindow):
                 self.Show_Normal_Readings()
                 self.Read_Dicom()
                 self.Show_Dicom_Readings()
+                imag=np.asarray(self.normal_pil_image)
                 self.Image_label.setPixmap(self.Dicom_image)
+                self.Original_Image_Fourier_tab_graphicsView.canvas.axes.clear()
+                self.Original_Image_Fourier_tab_graphicsView.canvas.axes.imshow(imag,cmap='gray')
+                self.Original_Image_Fourier_tab_graphicsView.canvas.draw()
                 #self.Original_Image_Equalization_label.setPixmap(self.Dicom_image)
             
 
@@ -745,6 +753,13 @@ class UI(QMainWindow):
         
         return output
 
+#####################################################################################################################################################
+##################################################### FOURIER TAB  `######################################################################################
+######################################################################################################################################################
+
+############################################# Apply Fourier ################################################################
+    def Apply_Fourier(self):
+        print()
 
 ######################################################### RUN THE APP ##############################################################################
 app = QApplication(sys.argv)
