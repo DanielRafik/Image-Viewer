@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import pydicom
 import math
 from pydicom.data import get_testdata_files
+from scipy.fft import fftshift
+from scipy.fftpack import fft2
 from sympy import maximum
 from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as NavigationToolbar)
 import random
