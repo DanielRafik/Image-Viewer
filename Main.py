@@ -761,7 +761,43 @@ class UI(QMainWindow):
 
 ############################################# Apply Fourier ################################################################
     def Apply_Fourier(self):
-        print()
+        try:
+            self.Convert_to_gray()
+            gray_array=np.asarray(self.Gray_Image)
+        except:
+            QMessageBox.about(self,"Error","Please Browse an image!")
+        else:
+            dark_image_grey_fourier = np.fft.fftshift(np.fft.fft2(gray_array))
+            real = dark_image_grey_fourier.real
+            imaginary = dark_image_grey_fourier.imag
+                ############ magnitude before log ############ 
+            addition=(real**2) + (imaginary**2)
+            magnitude = np.sqrt(addition)
+                # scaled_magnitude = (np.double(magnitude) - np.double(np.min(magnitude)))/ (np.double(np.max(magnitude)) - np.double(np.min(magnitude))) * np.double(np.max(magnitude))
+            self.Magnitude_BeforeLog_graphicsView.canvas.axes.clear()
+            self.Magnitude_BeforeLog_graphicsView.canvas.axes.imshow((magnitude), cmap = 'gray')
+            self.Magnitude_BeforeLog_graphicsView.canvas.draw()
+                ########## phase before log #############
+            phase = np.arctan2(imaginary,real)
+                # scaled_phase = (np.double(phase) - np.double(np.min(phase)))/ (np.double(np.max(phase)) - np.double(np.min(phase))) * np.double(np.max(phase))
+            self.Phase_BeforeLog_graphicsView.canvas.axes.clear()
+            self.Phase_BeforeLog_graphicsView.canvas.axes.imshow(phase, cmap = 'gray')
+            self.Phase_BeforeLog_graphicsView.canvas.draw()
+                ###########  magnitude after log ###########
+            shifted_magnitude = np.float32(magnitude)
+            c = 255/ np.log(1 + np.max(shifted_magnitude))
+            shifted_magnitude = c * np.log(1 + shifted_magnitude)
+            shifted_magnitude = np.asarray(shifted_magnitude)
+            scaled_shifted_magnitude = (np.double(shifted_magnitude) - np.double(np.min(shifted_magnitude)))/ (np.double(np.max(shifted_magnitude)) - np.double(np.min(shifted_magnitude))) * np.double(np.max(shifted_magnitude))
+            self.Magnitude_AfterLog_graphicsView.canvas.axes.clear()
+            self.Magnitude_AfterLog_graphicsView.canvas.axes.imshow((scaled_shifted_magnitude), cmap = 'gray')
+            self.Magnitude_AfterLog_graphicsView.canvas.draw()
+                ########### phase after log ###########
+            shifted_phase = np.log(phase+2*math.pi)
+            scaled_shifted_phase = (np.double(shifted_phase) - np.double(np.min(shifted_phase)))/ (np.double(np.max(shifted_phase)) - np.double(np.min(shifted_phase))) * np.double(np.max(shifted_phase))
+            self.Phase_AfterLog_graphicsView.canvas.axes.clear()
+            self.Phase_AfterLog_graphicsView.canvas.axes.imshow(((scaled_shifted_phase)), cmap = 'gray')
+            self.Phase_AfterLog_graphicsView.canvas.draw()
 
 ######################################################### RUN THE APP ##############################################################################
 app = QApplication(sys.argv)
