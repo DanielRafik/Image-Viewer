@@ -1090,7 +1090,7 @@ QSizeGrip
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>7</number>
       </property>
       <property name="elideMode">
        <enum>Qt::ElideMiddle</enum>
@@ -1770,6 +1770,111 @@ QSizeGrip
               </item>
              </layout>
             </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_8">
+       <attribute name="title">
+        <string>Fourier Filter</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_35">
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox_21">
+          <property name="title">
+           <string>Original Image</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_29">
+           <item row="0" column="0">
+            <widget class="QGraphicsView" name="Original_Image_Fourier_Filter_tab_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QGroupBox" name="groupBox_22">
+          <property name="title">
+           <string>Filtered Image</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_30">
+           <item row="0" column="0">
+            <widget class="QGraphicsView" name="Filtered_Fourier_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QGroupBox" name="groupBox_25">
+          <property name="title">
+           <string>Operations</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_34">
+           <item row="0" column="0">
+            <widget class="QGroupBox" name="groupBox_26">
+             <property name="title">
+              <string>Kernel</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_33">
+              <item row="0" column="0">
+               <widget class="QLineEdit" name="Fourier_Kernel_Size_lineEdit"/>
+              </item>
+              <item row="1" column="0">
+               <widget class="QPushButton" name="Apply_Fourier_Filter_Button">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>Bahnschrift SemiCondensed</family>
+                  <pointsize>13</pointsize>
+                 </font>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">	border-radius: 22px;</string>
+                </property>
+                <property name="text">
+                 <string>Apply Fourier Filter</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QGroupBox" name="groupBox_27">
+             <property name="title">
+              <string>Bonus</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="groupBox_23">
+          <property name="title">
+           <string>Substracted Image</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_31">
+           <item row="0" column="0">
+            <widget class="QGraphicsView" name="Substracted_Image_Filter_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QGroupBox" name="groupBox_24">
+          <property name="title">
+           <string>Bonus</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_32">
+           <item row="0" column="0">
+            <widget class="QGraphicsView" name="graphicsView"/>
            </item>
           </layout>
          </widget>
