@@ -37,6 +37,9 @@ class UI(QMainWindow):
         self.Add_Noise_Button.clicked.connect(self.Apply_Noise)
         self.Filter_Noise_Button.clicked.connect(self.filter_noise)
         self.Apply_Fourier_Transform_Button.clicked.connect(self.Apply_Fourier)
+        self.Apply_Fourier_Filter_Button.clicked.connect(self.Apply_Fourier_Filter)
+        self.Remove_Periodic_Noise_Button.clicked.connect(self.Remove_Patterned_Noise)
+        self.addToolBar(NavigationToolbar(self.Image_With_Periodic_Paterns_removed_graphicsView.canvas,self))
         self.Normal_tableWidget.setColumnWidth(0,470)
         self.Normal_tableWidget.setColumnWidth(1,470)
         self.Dicom_tableWidget.setColumnWidth(0,470)
@@ -54,6 +57,8 @@ class UI(QMainWindow):
         self.Equalized_Histogram_graphicsView.canvas.axes.set_ylabel('Probability')
         self.Original_Histogram_graphicsView.canvas.axes.set_xlabel('Intensity')
         self.Original_Histogram_graphicsView.canvas.axes.set_ylabel('Probability')
+        
+  
 #####################################################################################################################################################
 ##################################################### IMAGE VIEWER TAB######################################################################################
 ######################################################################################################################################################
@@ -80,6 +85,12 @@ class UI(QMainWindow):
                 self.Original_Image_Fourier_tab_graphicsView.canvas.axes.clear()
                 self.Original_Image_Fourier_tab_graphicsView.canvas.axes.imshow(imag,cmap='gray')
                 self.Original_Image_Fourier_tab_graphicsView.canvas.draw()
+                self.Original_Image_Fourier_Filter_tab_graphicsView.canvas.axes.clear()
+                self.Original_Image_Fourier_Filter_tab_graphicsView.canvas.axes.imshow(imag,cmap='gray')
+                self.Original_Image_Fourier_Filter_tab_graphicsView.canvas.draw()
+                self.Image_With_Periodic_Paterns_removed_graphicsView.canvas.axes.clear()
+                self.Image_With_Periodic_Paterns_removed_graphicsView.canvas.axes.imshow(((imag)), cmap = 'gray')
+                self.Image_With_Periodic_Paterns_removed_graphicsView.canvas.draw()
                 #self.Original_Image_Equalization_label.setPixmap(self.Normal_pix_image)
 
 ###########################################  IF DICOM FILE  ############################################################
@@ -102,6 +113,12 @@ class UI(QMainWindow):
                 self.Original_Image_Fourier_tab_graphicsView.canvas.axes.clear()
                 self.Original_Image_Fourier_tab_graphicsView.canvas.axes.imshow(imag,cmap='gray')
                 self.Original_Image_Fourier_tab_graphicsView.canvas.draw()
+                self.Original_Image_Fourier_Filter_tab_graphicsView.canvas.axes.clear()
+                self.Original_Image_Fourier_Filter_tab_graphicsView.canvas.axes.imshow(imag,cmap='gray')
+                self.Original_Image_Fourier_Filter_tab_graphicsView.canvas.draw()
+                self.Image_With_Periodic_Paterns_removed_graphicsView.canvas.axes.clear()
+                self.Image_With_Periodic_Paterns_removed_graphicsView.canvas.axes.imshow(((imag)), cmap = 'gray')
+                self.Image_With_Periodic_Paterns_removed_graphicsView.canvas.draw()
                 #self.Original_Image_Equalization_label.setPixmap(self.Dicom_image)
             
 
@@ -207,7 +224,7 @@ class UI(QMainWindow):
     def Convert_to_gray(self):
         if file_name[0].endswith(".bmp") | file_name[0].endswith(".jpeg")| file_name[0].endswith(".jpg") | file_name[0].endswith(".png"):
             self.Gray_Image=self.normal_pil_image.convert('L')
-            print(self.Gray_Image)
+            
         elif file_name[0].endswith(".dcm"):
             self.Gray_Image=self.final_pil_image.convert('L')
 ################################################################# NEAREST NEIGHBOR FUNCTION ############################################################################
@@ -799,6 +816,183 @@ class UI(QMainWindow):
             self.Phase_AfterLog_graphicsView.canvas.axes.imshow(((scaled_shifted_phase)), cmap = 'gray')
             self.Phase_AfterLog_graphicsView.canvas.draw()
 
+
+
+#####################################################################################################################################################
+##################################################### FOURIER FILTER TAB  `######################################################################################
+######################################################################################################################################################
+
+
+########################################## Main Fourier Filter Function #####################################################################
+    def Apply_Fourier_Filter(self):
+        try:
+            self.Convert_to_gray()
+            gray_array=np.asarray(self.Gray_Image)
+        except:
+            QMessageBox.about(self,"Error","Please Browse an image!")
+        else:
+            try:
+                Kernel_size=int(self.Fourier_Kernel_Size_lineEdit.text())
+            except:
+                QMessageBox.about(self,"Error","Please Enter Kernel Size!")
+            else:
+                image_width=gray_array.shape[0]
+                image_height=gray_array.shape[1]
+                print(image_height)
+                print(image_width)
+                if(image_width %2==0 and image_height%2 ==0):
+                    image_padded=np.zeros((image_width + 1, image_height + 1))
+                    image_padded[1: : , 1: : ] = gray_array
+                    image_width +=1
+                    image_height +=1
+
+                elif(image_width %2==0 and image_height%2 !=0):
+                    image_padded=np.zeros((image_width + 1, image_height))
+                    image_padded[1: :, : ] = gray_array
+                    image_width +=1
+
+                elif(image_width %2!=0 and image_height%2 ==0):
+                    image_padded=np.zeros((image_width, image_height+1))
+                    image_padded[: , 1: :] = gray_array
+                    image_height +=1
+
+                print(image_padded)
+                Filter=np.ones((Kernel_size, Kernel_size))/(Kernel_size**2)
+                Padded_Filter=self.zero_pad_kernel(Filter,image_padded)
+                print(Padded_Filter)
+
+######                                      Fourier of Filter ##########################################################################
+                Fourier_Shift_Filter = np.fft.fftshift(np.fft.fft2(Padded_Filter))
+                
+#####                                        Fourier of Image #########################################################################
+                Fourier_Shift_Image = np.fft.fftshift(np.fft.fft2(image_padded))
+
+#####                                        Inverse Fourier ###################################################
+                Filtered_image_Fourier=Fourier_Shift_Filter*Fourier_Shift_Image
+                Filtered_image=np.fft.ifftshift(Filtered_image_Fourier)
+                Filtered_image=np.fft.ifft2(Filtered_image)
+                Filtered_image=np.fft.fftshift(Filtered_image)
+######                                        Magnitude of the inverse #######################################################
+                real=Filtered_image.real
+                imaginary=Filtered_image.imag
+                addition=real**2 +imaginary**2
+                magnitude=np.sqrt(addition)
+
+                self.Filtered_Fourier_graphicsView.canvas.axes.clear()
+                self.Filtered_Fourier_graphicsView.canvas.axes.imshow(((magnitude)), cmap = 'gray')
+                self.Filtered_Fourier_graphicsView.canvas.draw()
+
+                Kernel_Filter=np.ones((Kernel_size, Kernel_size), np.float32)
+                Kernel_Filter=Kernel_Filter/(Kernel_size**2)
+                padding=(int(Kernel_size/2))
+                Post_convolution_image=self.convolve2D(gray_array,Kernel_Filter,padding=padding)
+                Post_substraction_array=self.substarct_arrays(Post_convolution_image,gray_array)
+                print("##########################################Convolution image###################################")
+                print(Post_convolution_image)
+                print('############################## Post substarction ###################################')
+                print(Post_substraction_array)
+                global Final_Enhanced_image
+                Final_Enhanced_image=self.addition_arrays(Post_substraction_array,gray_array)
+                for x in range(Final_Enhanced_image.shape[0]):
+                    for y in range(Final_Enhanced_image.shape[1]):
+                        if(Final_Enhanced_image[x,y]<0):
+                            Final_Enhanced_image[x,y]=0
+                        elif(Final_Enhanced_image[x,y]>255):
+                            Final_Enhanced_image[x,y]=255
+
+                Spacial_image_width=Final_Enhanced_image.shape[0]
+                Spacial_image_height=Final_Enhanced_image.shape[1]
+                print(Spacial_image_height)
+                print(Spacial_image_width)
+                if(Spacial_image_width %2==0 and Spacial_image_height%2 ==0):
+                    Spacial_image_padded=np.zeros((Spacial_image_width + 1, Spacial_image_height + 1))
+                    Spacial_image_padded[1: : , 1: : ] = gray_array
+                    Spacial_image_width +=1
+                    Spacial_image_height +=1
+
+                elif(Spacial_image_width %2==0 and Spacial_image_height%2 !=0):
+                    Spacial_image_padded=np.zeros((Spacial_image_width + 1, Spacial_image_height))
+                    Spacial_image_padded[1: :, : ] = gray_array
+                    Spacial_image_width +=1
+
+                elif(Spacial_image_width %2!=0 and Spacial_image_height%2 ==0):
+                    Spacial_image_padded=np.zeros((Spacial_image_width, Spacial_image_height+1))
+                    Spacial_image_padded[: , 1: :] = gray_array
+                    Spacial_image_height +=1
+
+                Substracted_Image=magnitude-Spacial_image_padded
+                for x in range(Substracted_Image.shape[0]):
+                    for y in range(Substracted_Image.shape[1]):
+                        if(Substracted_Image[x,y]<0):
+                            Substracted_Image[x,y]=0
+
+                self.Substracted_Image_Filter_graphicsView.canvas.axes.clear()
+                self.Substracted_Image_Filter_graphicsView.canvas.axes.imshow(((Substracted_Image)), cmap = 'gray')
+                self.Substracted_Image_Filter_graphicsView.canvas.draw()
+                
+  
+  
+  
+  
+    def zero_pad_kernel(self,kernel, image): # add zero padding to the image
+        img_height = image.shape[0]
+        img_width = image.shape[1]
+        kernel_height = kernel.shape[0]
+        kernel_width = kernel.shape[1]
+        pad_width = int((img_width - kernel_width) / 2 )
+        pad_height = int((img_height - kernel_height) / 2)
+        padded_kernel = np.zeros((img_height, img_width)) # setting array of the size of the padded image
+        # starting at the position where the first image pixel is, which is going to be the kernel center
+        # ending at the image dimension + the amount padded
+        for i in range(pad_height, kernel_height + pad_height):
+            for j in range(pad_width, kernel_width + pad_width):
+                padded_kernel[i][j] = kernel[i - pad_height][j - pad_width] # inserting image data within the frame of the padding
+        return padded_kernel
+
+    def Remove_Patterned_Noise(self):
+        try:
+            self.Convert_to_gray()
+            gray_array=np.asarray(self.Gray_Image)
+        except:
+            QMessageBox.about(self,"Error","Please Browse an image!")
+        else:
+            f = np.fft.fft2(gray_array) # changing the image to the frequency domain by fourier 
+            fshift = np.fft.fftshift(f)
+
+            img_shape = gray_array.shape
+
+            H1 = self.notch_reject_filter(img_shape, 4, 38, 30)
+            H2 = self.notch_reject_filter(img_shape, 4, -42, 27)
+            H3 = self.notch_reject_filter(img_shape, 2, 80, 30)
+            H4 = self.notch_reject_filter(img_shape, 2, -82, 28)
+
+            NotchFilter = H1*H2*H3*H4
+            NotchRejectCenter = fshift * NotchFilter 
+            NotchReject = np.fft.ifftshift(NotchRejectCenter)
+            inverse_NotchReject = np.fft.ifft2(NotchReject)  # Compute the inverse DFT of the result
+            result = np.abs(inverse_NotchReject)
+            self.Image_With_Periodic_Paterns_graphicsView.canvas.axes.clear()
+            self.Image_With_Periodic_Paterns_graphicsView.canvas.axes.imshow(((result)), cmap = 'gray')
+            self.Image_With_Periodic_Paterns_graphicsView.canvas.draw()
+
+    def notch_reject_filter(self,shape, d0=9, u_k=0, v_k=0):
+        P, Q = shape
+        # Initialize filter with zeros
+        H = np.zeros((P, Q))
+
+        # Traverse through filter
+        for u in range(0, P):
+            for v in range(0, Q):
+                # Get euclidean distance from point D(u,v) to the center
+                D_uv = np.sqrt((u - P / 2 + u_k) ** 2 + (v - Q / 2 + v_k) ** 2)
+                D_muv = np.sqrt((u - P / 2 - u_k) ** 2 + (v - Q / 2 - v_k) ** 2)
+
+                if D_uv <= d0 or D_muv <= d0:
+                    H[u, v] = 0.0
+                else:
+                    H[u, v] = 1.0
+
+        return H
 ######################################################### RUN THE APP ##############################################################################
 app = QApplication(sys.argv)
 UIWindow = UI()

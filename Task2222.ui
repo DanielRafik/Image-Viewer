@@ -1090,7 +1090,7 @@ QSizeGrip
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>7</number>
+       <number>8</number>
       </property>
       <property name="elideMode">
        <enum>Qt::ElideMiddle</enum>
@@ -1781,31 +1781,19 @@ QSizeGrip
         <string>Fourier Filter</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_35">
-        <item row="0" column="0">
+        <item row="0" column="1">
          <widget class="QGroupBox" name="groupBox_21">
           <property name="title">
            <string>Original Image</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
            <item row="0" column="0">
-            <widget class="QGraphicsView" name="Original_Image_Fourier_Filter_tab_graphicsView"/>
+            <widget class="MplWidget" name="Original_Image_Fourier_Filter_tab_graphicsView"/>
            </item>
           </layout>
          </widget>
         </item>
-        <item row="0" column="1">
-         <widget class="QGroupBox" name="groupBox_22">
-          <property name="title">
-           <string>Filtered Image</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_30">
-           <item row="0" column="0">
-            <widget class="QGraphicsView" name="Filtered_Fourier_graphicsView"/>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="0" column="2">
+        <item row="1" column="4">
          <widget class="QGroupBox" name="groupBox_25">
           <property name="title">
            <string>Operations</string>
@@ -1817,9 +1805,6 @@ QSizeGrip
               <string>Kernel</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_33">
-              <item row="0" column="0">
-               <widget class="QLineEdit" name="Fourier_Kernel_Size_lineEdit"/>
-              </item>
               <item row="1" column="0">
                <widget class="QPushButton" name="Apply_Fourier_Filter_Button">
                 <property name="sizePolicy">
@@ -1835,46 +1820,136 @@ QSizeGrip
                  </font>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true">	border-radius: 22px;</string>
+                 <string notr="true">	border-radius: 40px;</string>
                 </property>
                 <property name="text">
                  <string>Apply Fourier Filter</string>
                 </property>
                </widget>
               </item>
+              <item row="0" column="0">
+               <widget class="QLineEdit" name="Fourier_Kernel_Size_lineEdit"/>
+              </item>
+              <item row="2" column="0">
+               <widget class="QGroupBox" name="groupBox_27">
+                <property name="title">
+                 <string>Remove Periodic Noise</string>
+                </property>
+                <layout class="QGridLayout" name="gridLayout_37">
+                 <item row="0" column="0">
+                  <widget class="QPushButton" name="Remove_Periodic_Noise_Button">
+                   <property name="text">
+                    <string>Remove Periodic Noise</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
              </layout>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QGroupBox" name="groupBox_27">
-             <property name="title">
-              <string>Bonus</string>
-             </property>
             </widget>
            </item>
           </layout>
          </widget>
         </item>
-        <item row="1" column="0">
+        <item row="0" column="4">
          <widget class="QGroupBox" name="groupBox_23">
           <property name="title">
            <string>Substracted Image</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_31">
            <item row="0" column="0">
-            <widget class="QGraphicsView" name="Substracted_Image_Filter_graphicsView"/>
+            <widget class="MplWidget" name="Substracted_Image_Filter_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QGroupBox" name="groupBox_22">
+          <property name="title">
+           <string>Filtered Image</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_30">
+           <item row="0" column="0">
+            <widget class="MplWidget" name="Filtered_Fourier_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QGroupBox" name="groupBox_24">
+          <property name="title">
+           <string>Image with removed periodic Paterns</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_32">
+           <item row="0" column="0">
+            <widget class="MplWidget" name="Image_With_Periodic_Paterns_graphicsView"/>
            </item>
           </layout>
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QGroupBox" name="groupBox_24">
+         <widget class="QGroupBox" name="groupBox_28">
           <property name="title">
-           <string>Bonus</string>
+           <string>Image with periodic Paterns</string>
           </property>
-          <layout class="QGridLayout" name="gridLayout_32">
+          <layout class="QGridLayout" name="gridLayout_36">
+           <item row="0" column="1">
+            <widget class="MplWidget" name="Image_With_Periodic_Paterns_removed_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_9">
+       <attribute name="title">
+        <string>Noise</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_41">
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox_29">
+          <property name="title">
+           <string>Image</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_39">
            <item row="0" column="0">
-            <widget class="QGraphicsView" name="graphicsView"/>
+            <widget class="MplWidget" name="Image_Of_Shapes_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QGroupBox" name="groupBox_31">
+          <property name="title">
+           <string>Histogram</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_40">
+           <item row="0" column="0">
+            <widget class="QGraphicsView" name="Histogram_of_selected_rectangle_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <widget class="QGroupBox" name="groupBox_30">
+          <property name="title">
+           <string>Operations</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_38">
+           <item row="0" column="0">
+            <widget class="QPushButton" name="Add_Gaussian_and_Uniform_Noise_Button">
+             <property name="text">
+              <string>Add Gaussian and Uniform Noise</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="Calculate_Histogram_Button">
+             <property name="text">
+              <string>Calculate Historgram</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
