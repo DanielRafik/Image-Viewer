@@ -1,14 +1,15 @@
 from __future__ import print_function
 from PIL import Image
 import cv2
-from joblib import PrintTime
 import numpy as np
-import os
 import sys
-import pydicom as dicom
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog,QMessageBox
 from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from PyQt5.QtGui import QPixmap
+import matplotlib.pyplot as plt
+from PyQt5.QtCore import Qt, QPoint, QRect
+from PyQt5.QtGui import QPixmap, QPainter
+from scipy.stats.kde import gaussian_kde
 import matplotlib.pyplot as plt
 import pydicom
 import math
@@ -39,15 +40,23 @@ class UI(QMainWindow):
         self.Apply_Fourier_Transform_Button.clicked.connect(self.Apply_Fourier)
         self.Apply_Fourier_Filter_Button.clicked.connect(self.Apply_Fourier_Filter)
         self.Remove_Periodic_Noise_Button.clicked.connect(self.Remove_Patterned_Noise)
+        self.Add_Gaussian_and_Uniform_Noise_Button.clicked.connect(self.Add_Gaussian_and_Uniform_Noise)
+        self.Select_Region_Of_Interest_Button.clicked.connect(self.Select_ROI_Region)
+        self.Calculate_Histogram_Button.clicked.connect(self.ROI_Histogram)
         self.addToolBar(NavigationToolbar(self.Image_With_Periodic_Paterns_removed_graphicsView.canvas,self))
         self.Normal_tableWidget.setColumnWidth(0,470)
         self.Normal_tableWidget.setColumnWidth(1,470)
         self.Dicom_tableWidget.setColumnWidth(0,470)
         self.Dicom_tableWidget.setColumnWidth(1,470)
+
+        self.pix = QPixmap(self.rect().size())
+        self.pix.fill(Qt.white)
+        self.begin, self.destination = QPoint(), QPoint()
+
         self.set_Equalization_Histogram_UI()
         # self.New_Dimensions_tableWidget.setColumnWidth(0,1000)
         # self.New_Dimensions_tableWidget.setColumnWidth(1,1000)
-        
+        self.Draw_Shapes_Image()
         self.Draw_T_image()
         self.show()
 ##########################################################################################################################################################
@@ -57,6 +66,9 @@ class UI(QMainWindow):
         self.Equalized_Histogram_graphicsView.canvas.axes.set_ylabel('Probability')
         self.Original_Histogram_graphicsView.canvas.axes.set_xlabel('Intensity')
         self.Original_Histogram_graphicsView.canvas.axes.set_ylabel('Probability')
+        self.Histogram_of_selected_rectangle_graphicsView.canvas.axes.set_xlabel('Intensity')
+        self.Histogram_of_selected_rectangle_graphicsView.canvas.axes.set_ylabel('Probability')
+        
         
   
 #####################################################################################################################################################
@@ -530,7 +542,7 @@ class UI(QMainWindow):
             for x in range(img_array_length):
                 #if pixel intensity equal to intensity level  
                 #increment counter
-                if (New_array[x]==i):
+                if (round(New_array[x])==i):
                     temp=temp+1
 
             #append frequency of intensity level 
@@ -840,6 +852,7 @@ class UI(QMainWindow):
                 image_height=gray_array.shape[1]
                 print(image_height)
                 print(image_width)
+##                  Padding the image so the filter can be exactly in the middle #################################################
                 if(image_width %2==0 and image_height%2 ==0):
                     image_padded=np.zeros((image_width + 1, image_height + 1))
                     image_padded[1: : , 1: : ] = gray_array
@@ -881,7 +894,7 @@ class UI(QMainWindow):
                 self.Filtered_Fourier_graphicsView.canvas.axes.clear()
                 self.Filtered_Fourier_graphicsView.canvas.axes.imshow(((magnitude)), cmap = 'gray')
                 self.Filtered_Fourier_graphicsView.canvas.draw()
-
+                ############################# Spacial Filter ###########################
                 Kernel_Filter=np.ones((Kernel_size, Kernel_size), np.float32)
                 Kernel_Filter=Kernel_Filter/(Kernel_size**2)
                 padding=(int(Kernel_size/2))
@@ -893,6 +906,7 @@ class UI(QMainWindow):
                 print(Post_substraction_array)
                 global Final_Enhanced_image
                 Final_Enhanced_image=self.addition_arrays(Post_substraction_array,gray_array)
+                ################## Clipping ########################
                 for x in range(Final_Enhanced_image.shape[0]):
                     for y in range(Final_Enhanced_image.shape[1]):
                         if(Final_Enhanced_image[x,y]<0):
@@ -904,6 +918,7 @@ class UI(QMainWindow):
                 Spacial_image_height=Final_Enhanced_image.shape[1]
                 print(Spacial_image_height)
                 print(Spacial_image_width)
+#####             Paddding For the Spacial Filtered Image to be equal the Fourier Filter Image ############################################################
                 if(Spacial_image_width %2==0 and Spacial_image_height%2 ==0):
                     Spacial_image_padded=np.zeros((Spacial_image_width + 1, Spacial_image_height + 1))
                     Spacial_image_padded[1: : , 1: : ] = gray_array
@@ -919,7 +934,7 @@ class UI(QMainWindow):
                     Spacial_image_padded=np.zeros((Spacial_image_width, Spacial_image_height+1))
                     Spacial_image_padded[: , 1: :] = gray_array
                     Spacial_image_height +=1
-
+                ################# Substraction of two images (after Filter) ###########################
                 Substracted_Image=magnitude-Spacial_image_padded
                 for x in range(Substracted_Image.shape[0]):
                     for y in range(Substracted_Image.shape[1]):
@@ -932,7 +947,7 @@ class UI(QMainWindow):
                 
   
   
-  
+##################################### Padding for Filter ################################################################
   
     def zero_pad_kernel(self,kernel, image): # add zero padding to the image
         img_height = image.shape[0]
@@ -949,6 +964,10 @@ class UI(QMainWindow):
                 padded_kernel[i][j] = kernel[i - pad_height][j - pad_width] # inserting image data within the frame of the padding
         return padded_kernel
 
+
+
+
+############################################################ Remove Patterned Function ######################################################
     def Remove_Patterned_Noise(self):
         try:
             self.Convert_to_gray()
@@ -975,6 +994,10 @@ class UI(QMainWindow):
             self.Image_With_Periodic_Paterns_graphicsView.canvas.axes.imshow(((result)), cmap = 'gray')
             self.Image_With_Periodic_Paterns_graphicsView.canvas.draw()
 
+
+
+
+################################### Notch Filter #############################################################
     def notch_reject_filter(self,shape, d0=9, u_k=0, v_k=0):
         P, Q = shape
         # Initialize filter with zeros
@@ -993,6 +1016,98 @@ class UI(QMainWindow):
                     H[u, v] = 1.0
 
         return H
+
+
+#####################################################################################################################################################
+##################################################### NOISE TAB  `######################################################################################
+######################################################################################################################################################
+    
+#################################################### Draw Shapes Image ########################################################################
+    def Draw_Shapes_Image(self):
+        global Shapes_image_array
+        Shapes_image_height=256
+        Shapes_image_width=256
+        Shapes_image_array=np.zeros((Shapes_image_height,Shapes_image_width))
+        Shapes_image_array[0:43,::]=50
+        Shapes_image_array[213:255,::]=50
+        Shapes_image_array[::,0:43]=50
+        Shapes_image_array[::,213:255]=50
+        Shapes_image_array[43:213,43:213]=150
+        center_coordinates = (128,128)
+        radius = 64
+        color = 250
+        thickness = -1
+        Shapes_image_array=cv2.circle(Shapes_image_array, center_coordinates, radius, color, thickness)
+        
+
+        self.Image_Of_Shapes_graphicsView.canvas.axes.clear()
+        self.Image_Of_Shapes_graphicsView.canvas.axes.imshow(Shapes_image_array,cmap=("gray"))
+        self.Image_Of_Shapes_graphicsView.canvas.draw()
+
+
+
+################################################## Gaussian Noise function ####################################################
+    def Add_Gaussian_and_Uniform_Noise(self):
+        Gaussian_Image=self.Add_Gaussian_Noise(Shapes_image_array)
+        Noise_image=self.Add_Uniform_Noise(Gaussian_Image)
+        print(Noise_image)
+        self.Image_With_gaussian_and_Uniform_Noise_graphicsView.canvas.axes.clear()
+        self.Image_With_gaussian_and_Uniform_Noise_graphicsView.canvas.axes.imshow(Noise_image,cmap=("gray"))
+        self.Image_With_gaussian_and_Uniform_Noise_graphicsView.canvas.draw()
+
+        finalImage = Image.fromarray((Noise_image).astype(np.uint8))  
+        finalImage.save('finalImage.jpeg') 
+
+################################################## ROI SELECT ##########################################################
+    def Select_ROI_Region(self):
+        image=cv2.imread("finalImage.jpeg")
+        region = cv2.selectROI("Select The Area Desired", image)
+        global selected_ROI
+        selected_ROI = image[int(region[1]):int(region[1]+region[3]),int(region[0]):int(region[0]+region[2])]
+        self.ROI_graphicsView.canvas.axes.imshow(selected_ROI, cmap='gray')
+        self.ROI_graphicsView.canvas.draw()
+
+    
+#################################################### Histogram of ROI #########################################################
+    def ROI_Histogram(self):
+        image1D = selected_ROI.flatten()
+        Histogram = np.zeros([256]) #returns a new array of give n shape and type
+        #for loop through the pixels
+        for j in image1D:
+            #get the count of the pixel values [0,255] (nk) 
+            Histogram[j] = Histogram[j] + 1
+        a = iter(Histogram)
+        normalizedHistogram = [next(a)]
+        for i in a:
+            normalizedHistogram.append(normalizedHistogram[-1] + i)
+
+        self.Histogram_of_selected_rectangle_graphicsView.canvas.axes.clear()
+        self.Histogram_of_selected_rectangle_graphicsView.canvas.axes.bar(range(0,256),Histogram/np.max(Histogram)) # getting probability 
+        self.Histogram_of_selected_rectangle_graphicsView.canvas.draw()
+
+
+######################################### ADD GAUSSIAN NOISE FUNCTION ###################################################
+    def Add_Gaussian_Noise(self,image):
+        x, y = image.shape
+        mean = 0
+        sigma = 5
+        n = np.random.normal(loc=mean, scale=sigma, size=(x,y))
+        g = image + n
+        return g
+
+
+############################################## ADD UNIFORM NOISE FUNCTION ################################################ 
+    def Add_Uniform_Noise(self,image):
+        x, y = image.shape
+        a = -10
+        b = 10
+        n = np.zeros((x,y), dtype=np.float64)
+        for i in range(x):
+            for j in range(y):
+                n[i][j] = np.random.uniform(a,b)
+        g = image + n
+        return g
+
 ######################################################### RUN THE APP ##############################################################################
 app = QApplication(sys.argv)
 UIWindow = UI()

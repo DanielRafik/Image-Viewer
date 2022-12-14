@@ -1907,32 +1907,14 @@ QSizeGrip
         <string>Noise</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_41">
-        <item row="0" column="0">
-         <widget class="QGroupBox" name="groupBox_29">
-          <property name="title">
-           <string>Image</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_39">
-           <item row="0" column="0">
-            <widget class="MplWidget" name="Image_Of_Shapes_graphicsView"/>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QGroupBox" name="groupBox_31">
-          <property name="title">
-           <string>Histogram</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_40">
-           <item row="0" column="0">
-            <widget class="QGraphicsView" name="Histogram_of_selected_rectangle_graphicsView"/>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="2">
+        <item row="4" column="0">
          <widget class="QGroupBox" name="groupBox_30">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Operations</string>
           </property>
@@ -1950,6 +1932,110 @@ QSizeGrip
               <string>Calculate Historgram</string>
              </property>
             </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QPushButton" name="Select_Region_Of_Interest_Button">
+             <property name="text">
+              <string>Select Region Of Interest</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="groupBox_29">
+          <property name="title">
+           <string>Image</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_39">
+           <item row="0" column="0">
+            <widget class="MplWidget" name="Image_Of_Shapes_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QGroupBox" name="groupBox_33">
+          <property name="title">
+           <string>Calculations</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_43">
+           <item row="0" column="0">
+            <widget class="QLineEdit" name="Mean_lineEdit">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Mean:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="Sigma_lineEdit">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Sigma:</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QGroupBox" name="groupBox_32">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string>Noisy Image</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_42">
+           <item row="0" column="0">
+            <widget class="MplWidget" name="Image_With_gaussian_and_Uniform_Noise_graphicsView">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QGroupBox" name="groupBox_31">
+          <property name="title">
+           <string>Histogram</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_40">
+           <item row="0" column="0">
+            <widget class="MplWidget" name="Histogram_of_selected_rectangle_graphicsView">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QGroupBox" name="groupBox_34">
+          <property name="title">
+           <string>ROI</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_44">
+           <item row="0" column="0">
+            <widget class="MplWidget" name="ROI_graphicsView"/>
            </item>
           </layout>
          </widget>
