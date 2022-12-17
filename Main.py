@@ -8,6 +8,7 @@ from PyQt5 import uic, QtGui, QtCore, QtWidgets
 from PyQt5.QtGui import QPixmap
 import matplotlib.pyplot as plt
 from PyQt5.QtCore import Qt, QPoint, QRect
+from matplotlib.widgets  import RectangleSelector
 from PyQt5.QtGui import QPixmap, QPainter
 from scipy.stats.kde import gaussian_kde
 import matplotlib.pyplot as plt
@@ -40,7 +41,7 @@ class UI(QMainWindow):
         self.Apply_Fourier_Transform_Button.clicked.connect(self.Apply_Fourier)
         self.Apply_Fourier_Filter_Button.clicked.connect(self.Apply_Fourier_Filter)
         self.Remove_Periodic_Noise_Button.clicked.connect(self.Remove_Patterned_Noise)
-        self.Add_Gaussian_and_Uniform_Noise_Button.clicked.connect(self.Add_Gaussian_and_Uniform_Noise)
+        self.Apply_Noise_Button.clicked.connect(self.Add_Gaussian_and_Uniform_Noise)
         self.Select_Region_Of_Interest_Button.clicked.connect(self.Select_ROI_Region)
         self.Calculate_Histogram_Button.clicked.connect(self.ROI_Histogram)
         self.addToolBar(NavigationToolbar(self.Image_With_Periodic_Paterns_removed_graphicsView.canvas,self))
@@ -905,7 +906,7 @@ class UI(QMainWindow):
                 print('############################## Post substarction ###################################')
                 print(Post_substraction_array)
                 global Final_Enhanced_image
-                Final_Enhanced_image=self.addition_arrays(Post_substraction_array,gray_array)
+                Final_Enhanced_image=Post_convolution_image
                 ################## Clipping ########################
                 for x in range(Final_Enhanced_image.shape[0]):
                     for y in range(Final_Enhanced_image.shape[1]):
@@ -921,18 +922,18 @@ class UI(QMainWindow):
 #####             Paddding For the Spacial Filtered Image to be equal the Fourier Filter Image ############################################################
                 if(Spacial_image_width %2==0 and Spacial_image_height%2 ==0):
                     Spacial_image_padded=np.zeros((Spacial_image_width + 1, Spacial_image_height + 1))
-                    Spacial_image_padded[1: : , 1: : ] = gray_array
+                    Spacial_image_padded[1: : , 1: : ] = Final_Enhanced_image
                     Spacial_image_width +=1
                     Spacial_image_height +=1
 
                 elif(Spacial_image_width %2==0 and Spacial_image_height%2 !=0):
                     Spacial_image_padded=np.zeros((Spacial_image_width + 1, Spacial_image_height))
-                    Spacial_image_padded[1: :, : ] = gray_array
+                    Spacial_image_padded[1: :, : ] = Final_Enhanced_image
                     Spacial_image_width +=1
 
                 elif(Spacial_image_width %2!=0 and Spacial_image_height%2 ==0):
                     Spacial_image_padded=np.zeros((Spacial_image_width, Spacial_image_height+1))
-                    Spacial_image_padded[: , 1: :] = gray_array
+                    Spacial_image_padded[: , 1: :] = Final_Enhanced_image
                     Spacial_image_height +=1
                 ################# Substraction of two images (after Filter) ###########################
                 Substracted_Image=magnitude-Spacial_image_padded
@@ -980,10 +981,10 @@ class UI(QMainWindow):
 
             img_shape = gray_array.shape
 
-            H1 = self.notch_reject_filter(img_shape, 4, 38, 30)
-            H2 = self.notch_reject_filter(img_shape, 4, -42, 27)
-            H3 = self.notch_reject_filter(img_shape, 2, 80, 30)
-            H4 = self.notch_reject_filter(img_shape, 2, -82, 28)
+            H1 = self.notch_reject_filter(img_shape, 4, 40, 28)
+            H2 = self.notch_reject_filter(img_shape, 4, -44, 29)
+            H3 = self.notch_reject_filter(img_shape, 2, 82, 28)
+            H4 = self.notch_reject_filter(img_shape, 2, -84, 26)
 
             NotchFilter = H1*H2*H3*H4
             NotchRejectCenter = fshift * NotchFilter 
@@ -1024,66 +1025,138 @@ class UI(QMainWindow):
     
 #################################################### Draw Shapes Image ########################################################################
     def Draw_Shapes_Image(self):
-        global Shapes_image_array
-        Shapes_image_height=256
-        Shapes_image_width=256
-        Shapes_image_array=np.zeros((Shapes_image_height,Shapes_image_width))
-        Shapes_image_array[0:43,::]=50
-        Shapes_image_array[213:255,::]=50
-        Shapes_image_array[::,0:43]=50
-        Shapes_image_array[::,213:255]=50
-        Shapes_image_array[43:213,43:213]=150
-        center_coordinates = (128,128)
-        radius = 64
-        color = 250
-        thickness = -1
-        Shapes_image_array=cv2.circle(Shapes_image_array, center_coordinates, radius, color, thickness)
+        # 50, 120, 200
+        x = np.linspace(-10, 10, 256)
+        y = np.linspace(-10, 10, 256)
+        x, y = np.meshgrid(x, y)
+        x_0 = 0
+        y_0 = 0
+        mask = np.sqrt((x-x_0)**2+(y-y_0)**2)
+
+        r = 5
+        for x in range(256):
+            for y in range(256):
+                if mask[x,y] < r:
+                    mask[x,y] = 80
+                elif mask[x,y] >= r:
+                    mask[x,y] = 0
+
+
+
+
+        squares = np.full((256, 256), 50)
+        for i in range(35, 221):
+            for j in range(35, 221):
+                squares[i,j] = 120
+        
+        global phantom
+        phantom = squares + mask 
+
         
 
         self.Image_Of_Shapes_graphicsView.canvas.axes.clear()
-        self.Image_Of_Shapes_graphicsView.canvas.axes.imshow(Shapes_image_array,cmap=("gray"))
+        self.Image_Of_Shapes_graphicsView.canvas.axes.imshow(phantom,cmap=("gray"))
         self.Image_Of_Shapes_graphicsView.canvas.draw()
 
 
 
 ################################################## Gaussian Noise function ####################################################
     def Add_Gaussian_and_Uniform_Noise(self):
-        Gaussian_Image=self.Add_Gaussian_Noise(Shapes_image_array)
-        Noise_image=self.Add_Uniform_Noise(Gaussian_Image)
-        print(Noise_image)
-        self.Image_With_gaussian_and_Uniform_Noise_graphicsView.canvas.axes.clear()
-        self.Image_With_gaussian_and_Uniform_Noise_graphicsView.canvas.axes.imshow(Noise_image,cmap=("gray"))
-        self.Image_With_gaussian_and_Uniform_Noise_graphicsView.canvas.draw()
+        global finalImage
+        if self.Noise_options_comboBox.currentIndex() ==0:
+            finalImage=self.Add_Uniform_Noise(phantom)  
+        elif self.Noise_options_comboBox.currentIndex() ==1:
+            finalImage=self.Add_Gaussian_Noise(phantom)
 
-        finalImage = Image.fromarray((Noise_image).astype(np.uint8))  
-        finalImage.save('finalImage.jpeg') 
+        self.Image_With_gaussian_and_Uniform_Noise_graphicsView.canvas.axes.clear()
+        self.Image_With_gaussian_and_Uniform_Noise_graphicsView.canvas.axes.imshow(finalImage,cmap=("gray"))
+        self.Image_With_gaussian_and_Uniform_Noise_graphicsView.canvas.draw()
+        finalImage = finalImage.astype(np.uint8)
+        # finalImage.save('finalImage.jpeg') 
 
 ################################################## ROI SELECT ##########################################################
-    def Select_ROI_Region(self):
-        image=cv2.imread("finalImage.jpeg")
-        region = cv2.selectROI("Select The Area Desired", image)
-        global selected_ROI
-        selected_ROI = image[int(region[1]):int(region[1]+region[3]),int(region[0]):int(region[0]+region[2])]
-        self.ROI_graphicsView.canvas.axes.imshow(selected_ROI, cmap='gray')
-        self.ROI_graphicsView.canvas.draw()
+    # def Select_ROI_Region(self):
+    #     # image=cv2.imread("finalImage.jpeg")
+       
+    #     print(region)
+    #     global selected_ROI
+    #     selected_ROI = finalImage[int(region[1]):int(region[1]+region[3]),int(region[0]):int(region[0]+region[2])]
+    #     self.ROI_graphicsView.canvas.axes.imshow(selected_ROI, cmap='gray')
+    #     self.ROI_graphicsView.canvas.draw()
 
     
+    def Select_ROI_Region(self):
+      
+        rs = RectangleSelector(self.Image_With_gaussian_and_Uniform_Noise_graphicsView.canvas.axes, self.line_select_callback,
+                       drawtype='box', useblit=False, button=[1], 
+                       minspanx=5, minspany=5, spancoords='pixels', 
+                       interactive=True)
+        try:        
+            roi = cv2.selectROI(finalImage)
+        except:
+            QMessageBox.about(self,"ERROR","Please add noise!!!")
+        else:
+        
+            cv2.waitKey(0)
+
+    def line_select_callback(self,eclick, erelease):
+        try:
+            self.Image_With_gaussian_and_Uniform_Noise_graphicsView.canvas.axes.clear()
+            self.Image_With_gaussian_and_Uniform_Noise_graphicsView.canvas.axes.imshow(finalImage,cmap='gray')
+            self.Image_With_gaussian_and_Uniform_Noise_graphicsView.canvas.draw()
+        except:
+            QMessageBox.about(self,"ERROR","Please add a Noise")    
+        else:        
+            x1, y1 = eclick.xdata, eclick.ydata
+            x2, y2 = erelease.xdata, erelease.ydata
+
+            rect = plt.Rectangle( (min(x1,x2),min(y1,y2)), np.abs(x1-x2), np.abs(y1-y2) )
+            print("rect",rect)
+            print(x1,x2,y1,y2)
+            global selected_ROI
+            selected_ROI=finalImage[round(y1):round(y2),round(x1): round(x2)]
+            #self.noisyy=self.normalization(self.noisyy)
+
+            self.ROI_graphicsView.canvas.axes.clear()
+            self.ROI_graphicsView.canvas.axes.imshow(selected_ROI,cmap='gray')
+            self.ROI_graphicsView.canvas.draw()
+
 #################################################### Histogram of ROI #########################################################
     def ROI_Histogram(self):
-        image1D = selected_ROI.flatten()
-        Histogram = np.zeros([256]) #returns a new array of give n shape and type
-        #for loop through the pixels
-        for j in image1D:
-            #get the count of the pixel values [0,255] (nk) 
-            Histogram[j] = Histogram[j] + 1
-        a = iter(Histogram)
-        normalizedHistogram = [next(a)]
-        for i in a:
-            normalizedHistogram.append(normalizedHistogram[-1] + i)
+        try:
+            image1D = selected_ROI.flatten()
+        except:
+            QMessageBox.about(self,"ERROR","Please select region of interest!!!!!")
+        else:
+            max=int(np.amax(selected_ROI))
+            max_Bit_depth=int(2**(np.ceil(np.log2(max+1))))
 
-        self.Histogram_of_selected_rectangle_graphicsView.canvas.axes.clear()
-        self.Histogram_of_selected_rectangle_graphicsView.canvas.axes.bar(range(0,256),Histogram/np.max(Histogram)) # getting probability 
-        self.Histogram_of_selected_rectangle_graphicsView.canvas.draw()
+            pixel_value=np.arange(max_Bit_depth)
+            Histogram = np.zeros(max_Bit_depth)
+            for j in range (len(image1D)):
+                Histogram[int(image1D[j])] += 1
+            
+            normalizedHistogram = Histogram/len(image1D)
+        
+            mean=0
+            sum_square_difference=0
+            for i in range(max_Bit_depth):
+                mean += normalizedHistogram[i]*pixel_value[i]
+
+            for i in range(max_Bit_depth):
+                sum_square_difference += ((pixel_value[i]-mean)**2)* normalizedHistogram[i]
+            
+            variance=sum_square_difference/len(image1D)
+            standard_deviation=np.sqrt(variance)
+
+        
+
+        
+            self.Standard_Deviation_value_lineEdit.setText(str(standard_deviation))
+            self.Mean_Value_lineEdit.setText(str(mean))
+            self.Histogram_of_selected_rectangle_graphicsView.canvas.axes.clear()
+            self.Histogram_of_selected_rectangle_graphicsView.canvas.axes.bar(pixel_value,normalizedHistogram) # getting probability 
+            self.Histogram_of_selected_rectangle_graphicsView.canvas.draw()
 
 
 ######################################### ADD GAUSSIAN NOISE FUNCTION ###################################################

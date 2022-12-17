@@ -1808,7 +1808,7 @@ QSizeGrip
               <item row="1" column="0">
                <widget class="QPushButton" name="Apply_Fourier_Filter_Button">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -1820,7 +1820,7 @@ QSizeGrip
                  </font>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true">	border-radius: 40px;</string>
+                 <string notr="true">	border-radius: 12px;</string>
                 </property>
                 <property name="text">
                  <string>Apply Fourier Filter</string>
@@ -1919,24 +1919,38 @@ QSizeGrip
            <string>Operations</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_38">
-           <item row="0" column="0">
-            <widget class="QPushButton" name="Add_Gaussian_and_Uniform_Noise_Button">
+           <item row="3" column="0">
+            <widget class="QPushButton" name="Select_Region_Of_Interest_Button">
              <property name="text">
-              <string>Add Gaussian and Uniform Noise</string>
+              <string>Select Region Of Interest</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
+           <item row="3" column="1">
             <widget class="QPushButton" name="Calculate_Histogram_Button">
              <property name="text">
               <string>Calculate Historgram</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="0" colspan="2">
-            <widget class="QPushButton" name="Select_Region_Of_Interest_Button">
+           <item row="2" column="0">
+            <widget class="QComboBox" name="Noise_options_comboBox">
+             <item>
+              <property name="text">
+               <string>Uniform Noise</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Gaussian Noise</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QPushButton" name="Apply_Noise_Button">
              <property name="text">
-              <string>Select Region Of Interest</string>
+              <string>Apply Noise</string>
              </property>
             </widget>
            </item>
@@ -1961,7 +1975,7 @@ QSizeGrip
            <string>Calculations</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_43">
-           <item row="0" column="0">
+           <item row="1" column="1">
             <widget class="QLineEdit" name="Mean_lineEdit">
              <property name="enabled">
               <bool>false</bool>
@@ -1972,14 +1986,20 @@ QSizeGrip
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QLineEdit" name="Sigma_lineEdit">
+            <widget class="QLineEdit" name="Standard_Deviation_lineEdit">
              <property name="enabled">
               <bool>false</bool>
              </property>
              <property name="text">
-              <string>Sigma:</string>
+              <string>Standard Deviation:</string>
              </property>
             </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLineEdit" name="Standard_Deviation_value_lineEdit"/>
+           </item>
+           <item row="1" column="2">
+            <widget class="QLineEdit" name="Mean_Value_lineEdit"/>
            </item>
           </layout>
          </widget>
