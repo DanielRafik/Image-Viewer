@@ -60,6 +60,8 @@ class UI(QMainWindow):
         self.Draw_Shapes_Image()
         self.Draw_T_image()
         self.show()
+
+
 ##########################################################################################################################################################
 ######################################################### SET UI ELEMENTS #########################################################################################
     def set_Equalization_Histogram_UI(self):
@@ -1075,15 +1077,7 @@ class UI(QMainWindow):
         # finalImage.save('finalImage.jpeg') 
 
 ################################################## ROI SELECT ##########################################################
-    # def Select_ROI_Region(self):
-    #     # image=cv2.imread("finalImage.jpeg")
-       
-    #     print(region)
-    #     global selected_ROI
-    #     selected_ROI = finalImage[int(region[1]):int(region[1]+region[3]),int(region[0]):int(region[0]+region[2])]
-    #     self.ROI_graphicsView.canvas.axes.imshow(selected_ROI, cmap='gray')
-    #     self.ROI_graphicsView.canvas.draw()
-
+  
     
     def Select_ROI_Region(self):
       
