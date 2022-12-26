@@ -13,6 +13,8 @@ from PyQt5.QtGui import QPixmap, QPainter
 from scipy.stats.kde import gaussian_kde
 import matplotlib.pyplot as plt
 import pydicom
+from skimage.data import shepp_logan_phantom
+from skimage.transform import radon, rescale,iradon
 import math
 from pydicom.data import get_testdata_files
 from scipy.fft import fftshift
@@ -44,19 +46,23 @@ class UI(QMainWindow):
         self.Apply_Noise_Button.clicked.connect(self.Add_Gaussian_and_Uniform_Noise)
         self.Select_Region_Of_Interest_Button.clicked.connect(self.Select_ROI_Region)
         self.Calculate_Histogram_Button.clicked.connect(self.ROI_Histogram)
+        self.Display_Sinogram_and_Laminogram_Button.clicked.connect(self.back_Projection)
         self.addToolBar(NavigationToolbar(self.Image_With_Periodic_Paterns_removed_graphicsView.canvas,self))
         self.Normal_tableWidget.setColumnWidth(0,470)
         self.Normal_tableWidget.setColumnWidth(1,470)
         self.Dicom_tableWidget.setColumnWidth(0,470)
         self.Dicom_tableWidget.setColumnWidth(1,470)
-
+        global Shcepp_Logan_Phantom
+        Shcepp_Logan_Phantom = shepp_logan_phantom()
+        Shcepp_Logan_Phantom = rescale(Shcepp_Logan_Phantom, scale=0.64, mode='reflect', channel_axis=None)
+        self.Schepp_Logan_Pahntom_graphicsView.canvas.axes.clear()
+        self.Schepp_Logan_Pahntom_graphicsView.canvas.axes.imshow(Shcepp_Logan_Phantom,cmap='gray')
+        self.Schepp_Logan_Pahntom_graphicsView.canvas.draw()   
         self.pix = QPixmap(self.rect().size())
         self.pix.fill(Qt.white)
         self.begin, self.destination = QPoint(), QPoint()
 
         self.set_Equalization_Histogram_UI()
-        # self.New_Dimensions_tableWidget.setColumnWidth(0,1000)
-        # self.New_Dimensions_tableWidget.setColumnWidth(1,1000)
         self.Draw_Shapes_Image()
         self.Draw_T_image()
         self.show()
@@ -1143,7 +1149,6 @@ class UI(QMainWindow):
             variance=sum_square_difference/len(image1D)
             standard_deviation=np.sqrt(variance)
 
-        
 
         
             self.Standard_Deviation_value_lineEdit.setText(str(standard_deviation))
@@ -1161,6 +1166,7 @@ class UI(QMainWindow):
         n = np.random.normal(loc=mean, scale=sigma, size=(x,y))
         g = image + n
         return g
+        
 
 
 ############################################## ADD UNIFORM NOISE FUNCTION ################################################ 
@@ -1174,6 +1180,79 @@ class UI(QMainWindow):
                 n[i][j] = np.random.uniform(a,b)
         g = image + n
         return g
+#####################################################################################################################################################
+############################################### BACK PROJECTION TAB #################################################################################
+#####################################################################################################################################################
+
+    def discrete_radon_transform(self,img, theta):    
+        img=Image.fromarray(img)
+        numAngles = len(theta)
+        sinogram = np.zeros((img.size[0],numAngles))
+
+        for n in range(numAngles):
+            rotImgObj = img.rotate(theta[n], resample=Image.BICUBIC)
+            sinogram[:,n] = np.sum(rotImgObj, axis=0)
+            
+        return sinogram
+
+
+    def back_Projection(self):
+        theta_b = range(0,180)
+        theta_a = [0, 20, 40, 60,80,100,120,140,160]
+        theta = np.linspace(0., 180., max(Shcepp_Logan_Phantom.shape), endpoint=False)
+        sinogram=self.discrete_radon_transform(Shcepp_Logan_Phantom,theta)
+        sinogram_NO_BONUS=radon(Shcepp_Logan_Phantom,theta)
+        dx, dy = 0.5 * 180.0 / max(Shcepp_Logan_Phantom.shape), 0.5 / sinogram.shape[0]
+
+        sinogram=np.rot90(sinogram)
+        sinogram=np.flip(sinogram)
+        
+        sinogram_NO_BONUS=np.rot90(sinogram_NO_BONUS)
+        
+        self.Sinogram_graphicsView.canvas.axes.clear()
+        self.Sinogram_graphicsView.canvas.axes.imshow(sinogram,cmap='gray')
+        self.Sinogram_graphicsView.canvas.draw()   
+
+        self.Sinogram_No_bonus_graphicsView.canvas.axes.clear()
+        self.Sinogram_No_bonus_graphicsView.canvas.axes.imshow(sinogram_NO_BONUS,cmap='gray')
+        self.Sinogram_No_bonus_graphicsView.canvas.draw()
+
+        if (self.Filter_or_no_comboBox.currentText() == 'With Angles 20,40,60,...'):
+            sinogram=self.discrete_radon_transform(Shcepp_Logan_Phantom,theta_a)
+            sinogram_NO_BONUS=radon(Shcepp_Logan_Phantom,theta_a)
+           
+        
+            reconstruction_fbp = iradon(sinogram, theta=theta_a, filter_name = None)
+            reconstruction_fbp_NO_BONUS = iradon(sinogram_NO_BONUS, theta=theta_a, filter_name = None)
+
+            
+        elif(self.Filter_or_no_comboBox.currentText() == 'No Filter'):
+            sinogram =self.discrete_radon_transform(Shcepp_Logan_Phantom,theta_b)
+            sinogram_NO_BONUS=radon(Shcepp_Logan_Phantom,theta_b)
+           
+            reconstruction_fbp = iradon(sinogram, theta = theta_b, filter_name = None)
+            reconstruction_fbp_NO_BONUS = iradon(sinogram_NO_BONUS, theta = theta_b, filter_name = None)
+            
+
+        elif (self.Filter_or_no_comboBox.currentText() == 'select here Go to other box for filters'):
+            sinogram = self.discrete_radon_transform(Shcepp_Logan_Phantom, theta_b)
+            sinogram_NO_BONUS=radon(Shcepp_Logan_Phantom,theta_b)
+            
+            reconstruction_fbp = iradon(sinogram, theta=theta_b, filter_name = self.Hamming_comboBox.currentText() )
+            reconstruction_fbp_NO_BONUS = iradon(sinogram_NO_BONUS, theta=theta_b, filter_name = self.Hamming_comboBox.currentText())
+           
+        
+        reconstruction_fbp=np.flip(reconstruction_fbp)
+        reconstruction_fbp=np.flip(reconstruction_fbp,1)
+
+        self.Laminogram_graphicsView.canvas.axes.clear()
+        self.Laminogram_graphicsView.canvas.axes.imshow(reconstruction_fbp,cmap='gray')
+        self.Laminogram_graphicsView.canvas.draw()
+
+        self.Laminogram_No_Bonus_graphicsView.canvas.axes.clear()
+        self.Laminogram_No_Bonus_graphicsView.canvas.axes.imshow(reconstruction_fbp_NO_BONUS,cmap='gray')
+        self.Laminogram_No_Bonus_graphicsView.canvas.draw()
+
 
 ######################################################### RUN THE APP ##############################################################################
 app = QApplication(sys.argv)

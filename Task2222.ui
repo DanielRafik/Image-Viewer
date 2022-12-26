@@ -1090,7 +1090,7 @@ QSizeGrip
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>8</number>
+       <number>0</number>
       </property>
       <property name="elideMode">
        <enum>Qt::ElideMiddle</enum>
@@ -2056,6 +2056,128 @@ QSizeGrip
           <layout class="QGridLayout" name="gridLayout_44">
            <item row="0" column="0">
             <widget class="MplWidget" name="ROI_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_10">
+       <attribute name="title">
+        <string>Back Projection</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_48">
+        <item row="1" column="2">
+         <widget class="QGroupBox" name="groupBox_39">
+          <property name="title">
+           <string>Laminogram no bonus</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_50">
+           <item row="0" column="0">
+            <widget class="MplWidget" name="Laminogram_No_Bonus_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QGroupBox" name="groupBox_38">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string>Sinogram no bonus</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_49">
+           <item row="0" column="0">
+            <widget class="MplWidget" name="Sinogram_No_bonus_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="groupBox_40">
+          <property name="title">
+           <string>Operations</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_51">
+           <item row="1" column="0">
+            <widget class="QComboBox" name="Hamming_comboBox">
+             <item>
+              <property name="text">
+               <string>hamming</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>ramp</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QComboBox" name="Filter_or_no_comboBox">
+             <item>
+              <property name="text">
+               <string>No Filter</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>With Angles 20,40,60,...</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>select here Go to other box for filters</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QPushButton" name="Display_Sinogram_and_Laminogram_Button">
+             <property name="text">
+              <string>Display sinogram and laminogram</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox_35">
+          <property name="title">
+           <string>Schepp-Logan Phantom</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_45">
+           <item row="0" column="0">
+            <widget class="MplWidget" name="Schepp_Logan_Pahntom_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QGroupBox" name="groupBox_36">
+          <property name="title">
+           <string>Sinogram</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_46">
+           <item row="0" column="0">
+            <widget class="MplWidget" name="Sinogram_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QGroupBox" name="groupBox_37">
+          <property name="title">
+           <string>Laminogram</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_47">
+           <item row="0" column="0">
+            <widget class="MplWidget" name="Laminogram_graphicsView"/>
            </item>
           </layout>
          </widget>
