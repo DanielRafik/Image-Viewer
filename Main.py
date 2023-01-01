@@ -1332,42 +1332,54 @@ class UI(QMainWindow):
                 imgDilate[i,j]= np.max(product) 
         return imgDilate
 
+
+# ============================================== Opening Function =====================================================
     def Opening(self,img1):      
-        img1=np.asarray(img1)
+        #img1=Pil_img.convert(mode='L')
+            
+            img1=np.asarray(img1)
+            #img1= cv2.imread("/content/wire.tif",0)
             #Acquire size of the image
-        m,n= img1.shape 
+            m,n= img1.shape 
             #Show the image
-        plt.imshow(img1, cmap="gray")
+            plt.imshow(img1, cmap="gray")
             # Define the structuring element
             # k= 11,15,45 -Different sizes of the structuring element
-        k=3
-        SE= np.ones((k,k), dtype=np.uint8)
-        
-        constant= (k-1)//2
+            k=3
+            SE= np.ones((k,k), dtype=np.uint8)
+            #SE= np.array([[0,1,1,1,0],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[0,1,1,1,0]])
+
+            constant= (k-1)//2
             #Define new image
-        imgErode= np.zeros((m,n), dtype=np.uint8)
+            imgErode= np.zeros((m,n), dtype=np.uint8)
             #Erosion without using inbuilt cv2 function for morphology
-        for i in range(constant, m-constant):
-            for j in range(constant,n-constant):
-                temp= img1[i-constant:i+constant+1, j-constant:j+constant+1]
-                product= temp*SE
-                imgErode[i,j]= np.min(product)
-        p,q= imgErode.shape
+            for i in range(constant, m-constant):
+                for j in range(constant,n-constant):
+                    temp= img1[i-constant:i+constant+1, j-constant:j+constant+1]
+                    product= temp*SE
+                    imgErode[i,j]= np.min(product)
+            p,q= imgErode.shape
         #Show the image
+            #plt.imshow(img2, cmap="gray")
             #Define new image to store the pixels of dilated image
-        imgDilate= np.zeros((p,q), dtype=np.uint8)
+            imgDilate= np.zeros((p,q), dtype=np.uint8)
             #Define the structuring element 
-        SED= np.array([[0,1,0], [1,1,1],[0,1,0]])
-        constant1=1
+            SED= np.array([[0,1,0], [1,1,1],[0,1,0]])
+            #SED= np.array([[0,1,1,1,0],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[0,1,1,1,0]])
+            
+            constant1=1
             #Dilation operation without using inbuilt CV2 function
-        for i in range(constant1, p-constant1):
-             for j in range(constant1,q-constant1):
-                temp= imgErode[i-constant1:i+constant1+1, j-constant1:j+constant1+1]
-                product= temp*SED
-                imgDilate[i,j]= np.max(product)
-        return imgDilate
+            for i in range(constant1, p-constant1):
+                for j in range(constant1,q-constant1):
+                    temp= imgErode[i-constant1:i+constant1+1, j-constant1:j+constant1+1]
+                    product= temp*SED
+                    imgDilate[i,j]= np.max(product)
+            return imgDilate
+            
+       
 
 
+# ============================================== Closing Function =====================================================
     def Closing(self,img1):
         img2=np.asarray(img1)
         #Acquire size of the image
@@ -1419,15 +1431,17 @@ class UI(QMainWindow):
             self.New_Binary_Image_graphicsView.canvas.draw()
             
         elif (self.Structure_Operations_comboBox.currentText() == 'Opening'):
-            Opening_image=self.Opening(Binary_Image)
+            opened= self.erode_this(Binary_Image)
+            opened=self.dilate_this(opened)
             self.New_Binary_Image_graphicsView.canvas.axes.clear()
-            self.New_Binary_Image_graphicsView.canvas.axes.imshow(Opening_image,cmap='gray')
+            self.New_Binary_Image_graphicsView.canvas.axes.imshow(opened,cmap='gray')
             self.New_Binary_Image_graphicsView.canvas.draw()
         
         elif (self.Structure_Operations_comboBox.currentText() == 'Closing'):
-            Closing_Image=self.Closing(Binary_Image)
+            closed=self.dilate_this(Binary_Image)
+            closed= self.erode_this(closed)
             self.New_Binary_Image_graphicsView.canvas.axes.clear()
-            self.New_Binary_Image_graphicsView.canvas.axes.imshow(Closing_Image,cmap='gray')
+            self.New_Binary_Image_graphicsView.canvas.axes.imshow(closed,cmap='gray')
             self.New_Binary_Image_graphicsView.canvas.draw()
 
         elif (self.Structure_Operations_comboBox.currentText() == 'Filter'):
