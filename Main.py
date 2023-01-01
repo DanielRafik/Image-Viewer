@@ -47,6 +47,7 @@ class UI(QMainWindow):
         self.Select_Region_Of_Interest_Button.clicked.connect(self.Select_ROI_Region)
         self.Calculate_Histogram_Button.clicked.connect(self.ROI_Histogram)
         self.Display_Sinogram_and_Laminogram_Button.clicked.connect(self.back_Projection)
+        self.Apply_Selected_Operation_Button.clicked.connect(self.Apply_Seleted_Operation)
         self.addToolBar(NavigationToolbar(self.Image_With_Periodic_Paterns_removed_graphicsView.canvas,self))
         self.Normal_tableWidget.setColumnWidth(0,470)
         self.Normal_tableWidget.setColumnWidth(1,470)
@@ -57,7 +58,12 @@ class UI(QMainWindow):
         Shcepp_Logan_Phantom = rescale(Shcepp_Logan_Phantom, scale=0.64, mode='reflect', channel_axis=None)
         self.Schepp_Logan_Pahntom_graphicsView.canvas.axes.clear()
         self.Schepp_Logan_Pahntom_graphicsView.canvas.axes.imshow(Shcepp_Logan_Phantom,cmap='gray')
-        self.Schepp_Logan_Pahntom_graphicsView.canvas.draw()   
+        self.Schepp_Logan_Pahntom_graphicsView.canvas.draw() 
+        global Binary_Image
+        Binary_Image=self.Read_Image("Images/binary_image.png")
+        self.Binary_Image_graphicsView.canvas.axes.clear()
+        self.Binary_Image_graphicsView.canvas.axes.imshow(Binary_Image,cmap='gray')
+        self.Binary_Image_graphicsView.canvas.draw()
         self.pix = QPixmap(self.rect().size())
         self.pix.fill(Qt.white)
         self.begin, self.destination = QPoint(), QPoint()
@@ -66,6 +72,11 @@ class UI(QMainWindow):
         self.Draw_Shapes_Image()
         self.Draw_T_image()
         self.show()
+
+    
+    def Read_Image(self,Path):
+        image=cv2.imread(Path,0)
+        return image
 
 
 ##########################################################################################################################################################
@@ -1196,6 +1207,7 @@ class UI(QMainWindow):
         return sinogram
 
 
+#==================================================== Back Projection Function =============================================================
     def back_Projection(self):
         theta_b = range(0,180)
         theta_a = [0, 20, 40, 60,80,100,120,140,160]
@@ -1252,6 +1264,178 @@ class UI(QMainWindow):
         self.Laminogram_No_Bonus_graphicsView.canvas.axes.clear()
         self.Laminogram_No_Bonus_graphicsView.canvas.axes.imshow(reconstruction_fbp_NO_BONUS,cmap='gray')
         self.Laminogram_No_Bonus_graphicsView.canvas.draw()
+
+
+#####################################################################################################################################################
+############################################### BINARY IMAGE TAB #################################################################################
+#####################################################################################################################################################
+    
+
+
+# ================================================== Erotion Function ======================================================================== 
+    def erode_this(self,image):
+        padding=1
+        
+        image=np.asarray(image)
+        self.kernelsize=5
+           
+        count=1
+        for i in range (2,self.kernelsize):
+            if(i%2!=0):
+                 count+=1
+        padding=count
+        mag=self.kernelsize*self.kernelsize
+        kernel=np.array([[0,1,1,1,0], [1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1],[0,1,1,1,0]],dtype=np.uint8)*255
+        
+        #mag will contiam the sum of the elements (ones in the filter)
+        #we divid by it to get resamble numbers
+        
+        xKern = kernel.shape[0]
+        yKern = kernel.shape[1]
+        xofimg = image.shape[0]
+        yofimg = image.shape[1]
+        output = np.zeros((xofimg, yofimg))
+        imagePadded = np.zeros((image.shape[0] + padding*2, image.shape[1] + padding*2))
+        imagePadded[int(padding):int(-1 * padding), int(padding):int(-1 * padding)] = image
+        for y in range(yofimg):
+            
+            for x in range(xofimg):
+                    
+                
+                    if((kernel * imagePadded[x: x + xKern, y: y + yKern]).sum()==1365525):
+                        output[x, y]=255
+                    else:
+                        output[x, y]=0   
+        return output
+
+        
+# ============================================== Dilation Function =====================================================
+    def dilate_this(self,image):
+        #Read the image for dilation
+       
+        img2=np.asarray(image)
+        #Acquire size of the image
+        p,q= img2.shape
+        #Show the image
+        plt.imshow(img2, cmap="gray")
+        #Define new image to store the pixels of dilated image
+        imgDilate= np.zeros((p,q), dtype=np.uint8)
+        #Define the structuring element 
+        SED= np.array([[0,1,1,1,0],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[0,1,1,1,0]],dtype=np.uint8)
+        #return cv2.dilate(img2,SED)
+        constant1=2
+        #Dilation operation without using inbuilt CV2 function
+        for i in range(constant1, p-constant1):
+            for j in range(constant1,q-constant1):
+                temp= img2[i-constant1:i+constant1+1, j-constant1:j+constant1+1]
+                product= temp*SED
+                imgDilate[i,j]= np.max(product) 
+        return imgDilate
+
+    def Opening(self,img1):      
+        img1=np.asarray(img1)
+            #Acquire size of the image
+        m,n= img1.shape 
+            #Show the image
+        plt.imshow(img1, cmap="gray")
+            # Define the structuring element
+            # k= 11,15,45 -Different sizes of the structuring element
+        k=3
+        SE= np.ones((k,k), dtype=np.uint8)
+        
+        constant= (k-1)//2
+            #Define new image
+        imgErode= np.zeros((m,n), dtype=np.uint8)
+            #Erosion without using inbuilt cv2 function for morphology
+        for i in range(constant, m-constant):
+            for j in range(constant,n-constant):
+                temp= img1[i-constant:i+constant+1, j-constant:j+constant+1]
+                product= temp*SE
+                imgErode[i,j]= np.min(product)
+        p,q= imgErode.shape
+        #Show the image
+            #Define new image to store the pixels of dilated image
+        imgDilate= np.zeros((p,q), dtype=np.uint8)
+            #Define the structuring element 
+        SED= np.array([[0,1,0], [1,1,1],[0,1,0]])
+        constant1=1
+            #Dilation operation without using inbuilt CV2 function
+        for i in range(constant1, p-constant1):
+             for j in range(constant1,q-constant1):
+                temp= imgErode[i-constant1:i+constant1+1, j-constant1:j+constant1+1]
+                product= temp*SED
+                imgDilate[i,j]= np.max(product)
+        return imgDilate
+
+
+    def Closing(self,img1):
+        img2=np.asarray(img1)
+        #Acquire size of the image
+        p,q= img2.shape
+        #Show the image
+        #Define new image to store the pixels of dilated image
+        imgDilate= np.zeros((p,q), dtype=np.uint8)
+        #Define the structuring element 
+        SED= np.array([[0,1,0], [1,1,1],[0,1,0]])
+        constant1=1
+        #Dilation operation without using inbuilt CV2 function
+        for i in range(constant1, p-constant1):
+            for j in range(constant1,q-constant1):
+                temp= img2[i-constant1:i+constant1+1, j-constant1:j+constant1+1]
+                product= temp*SED
+                imgDilate[i,j]= np.max(product)
+        m,n= imgDilate.shape 
+        #Show the image
+        # Define the structuring element
+        # k= 11,15,45 -Different sizes of the structuring element
+        k=3
+        SE= np.ones((k,k), dtype=np.uint8)
+        constant= (k-1)//2
+        #Define new image
+        imgErode= np.zeros((m,n), dtype=np.uint8)
+        #Erosion without using inbuilt cv2 function for morphology
+        for i in range(constant, m-constant):
+            for j in range(constant,n-constant):
+                temp= imgDilate[i-constant:i+constant+1, j-constant:j+constant+1]
+                product= temp*SE
+                imgErode[i,j]= np.min(product)
+        return imgErode
+          
+
+# -------------------------------------------------------------------------------------------------------------------------------------------   
+#------------------------------------------------------- Main Function ----------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------   
+    def Apply_Seleted_Operation(self):
+        if (self.Structure_Operations_comboBox.currentText() == 'Erosion'):
+            eroded_image=self.erode_this(Binary_Image)
+            self.New_Binary_Image_graphicsView.canvas.axes.clear()
+            self.New_Binary_Image_graphicsView.canvas.axes.imshow(eroded_image,cmap='gray')
+            self.New_Binary_Image_graphicsView.canvas.draw()
+            
+        elif(self.Structure_Operations_comboBox.currentText() == 'Dilation'):
+            dilated_image=self.dilate_this(Binary_Image)
+            self.New_Binary_Image_graphicsView.canvas.axes.clear()
+            self.New_Binary_Image_graphicsView.canvas.axes.imshow(dilated_image,cmap='gray')
+            self.New_Binary_Image_graphicsView.canvas.draw()
+            
+        elif (self.Structure_Operations_comboBox.currentText() == 'Opening'):
+            Opening_image=self.Opening(Binary_Image)
+            self.New_Binary_Image_graphicsView.canvas.axes.clear()
+            self.New_Binary_Image_graphicsView.canvas.axes.imshow(Opening_image,cmap='gray')
+            self.New_Binary_Image_graphicsView.canvas.draw()
+        
+        elif (self.Structure_Operations_comboBox.currentText() == 'Closing'):
+            Closing_Image=self.Closing(Binary_Image)
+            self.New_Binary_Image_graphicsView.canvas.axes.clear()
+            self.New_Binary_Image_graphicsView.canvas.axes.imshow(Closing_Image,cmap='gray')
+            self.New_Binary_Image_graphicsView.canvas.draw()
+
+        elif (self.Structure_Operations_comboBox.currentText() == 'Filter'):
+            Opening_image=self.Opening(Binary_Image)
+            Final_Image=self.Closing(Opening_image)
+            self.New_Binary_Image_graphicsView.canvas.axes.clear()
+            self.New_Binary_Image_graphicsView.canvas.axes.imshow(Final_Image,cmap='gray')
+            self.New_Binary_Image_graphicsView.canvas.draw()
 
 
 ######################################################### RUN THE APP ##############################################################################

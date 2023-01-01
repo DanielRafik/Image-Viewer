@@ -2184,6 +2184,73 @@ QSizeGrip
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab_11">
+       <attribute name="title">
+        <string>Binary Image Operations</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_54">
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox_41">
+          <property name="title">
+           <string>Binary Image</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_52">
+           <item row="0" column="0">
+            <widget class="MplWidget" name="Binary_Image_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QGroupBox" name="groupBox_42">
+          <property name="title">
+           <string>Binary Image After Operation</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_53">
+           <item row="0" column="0">
+            <widget class="MplWidget" name="New_Binary_Image_graphicsView"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QComboBox" name="Structure_Operations_comboBox">
+          <item>
+           <property name="text">
+            <string>Erosion</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Dilation</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Opening</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Closing</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Filter</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="Apply_Selected_Operation_Button">
+          <property name="text">
+           <string>Apply Operation</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
